@@ -6,6 +6,8 @@ import { history, insights, summarize, type FinanceState } from "./finance";
 // Local overrides on top of the synced data: the user's own edits.
 interface Overrides {
   categoryOf: Record<string, string>; // txId -> categoryId
+  merchantRule?: Record<string, string>; // merchant -> categoryId, learned from recategorizing
+  verified?: string[]; // accounts the user re-verified (OTP)
   budgets?: Budget[];
   settings?: Partial<Settings>;
 }
@@ -15,7 +17,7 @@ const KEY = "shefa-overrides-v1";
 function load(): Overrides {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return { categoryOf: {}, ...JSON.parse(raw) };
   } catch {
     /* storage unavailable */
   }
@@ -44,11 +46,14 @@ function useStoreValue() {
   const state: FinanceState = useMemo(
     () => ({
       categories: mock.categories,
-      accounts: mock.accounts,
-      recurring: mock.recurring,
-      transactions: mock.transactions.map((t) =>
-        overrides.categoryOf[t.id] ? { ...t, categoryId: overrides.categoryOf[t.id] } : t,
+      accounts: mock.accounts.map((a) =>
+        overrides.verified?.includes(a.id) ? { ...a, status: "ok" as const, lastSync: new Date().toISOString() } : a,
       ),
+      recurring: mock.recurring,
+      transactions: mock.transactions.map((t) => {
+        const c = overrides.categoryOf[t.id] ?? overrides.merchantRule?.[t.merchant];
+        return c ? { ...t, categoryId: c } : t;
+      }),
       budgets: overrides.budgets ?? mock.budgets,
       settings: { ...mock.settings, ...overrides.settings },
     }),
@@ -60,9 +65,22 @@ function useStoreValue() {
   const hist = useMemo(() => history(state, today, 6), [state, today]);
   const tips = useMemo(() => insights(state, current, previous), [state, current, previous]);
 
+  // Recategorizing teaches a rule for the merchant, so its other transactions follow.
+  // Earlier per-transaction overrides for that merchant are dropped so the rule wins.
   const recategorize = useCallback(
     (txId: string, categoryId: string) =>
-      setOverrides((o) => ({ ...o, categoryOf: { ...o.categoryOf, [txId]: categoryId } })),
+      setOverrides((o) => {
+        const merchant = mock.transactions.find((t) => t.id === txId)?.merchant;
+        if (!merchant) return o;
+        const sameMerchant = new Set(mock.transactions.filter((t) => t.merchant === merchant).map((t) => t.id));
+        const categoryOf = Object.fromEntries(Object.entries(o.categoryOf).filter(([id]) => !sameMerchant.has(id)));
+        return { ...o, categoryOf, merchantRule: { ...o.merchantRule, [merchant]: categoryId } };
+      }),
+    [],
+  );
+
+  const verifyAccount = useCallback(
+    (accountId: string) => setOverrides((o) => ({ ...o, verified: [...new Set([...(o.verified ?? []), accountId])] })),
     [],
   );
 
@@ -82,12 +100,13 @@ function useStoreValue() {
   const reset = useCallback(() => setOverrides({ categoryOf: {} }), []);
 
   const category = useCallback(
-    (id: string) => state.categories.find((c) => c.id === id) ?? state.categories[state.categories.length - 1],
+    // Unknown ids fall back to "misc" (still counted as spending), never to a transfer category.
+    (id: string) => state.categories.find((c) => c.id === id) ?? state.categories.find((c) => c.id === "misc")!,
     [state.categories],
   );
   const account = useCallback((id: string) => state.accounts.find((a) => a.id === id)!, [state.accounts]);
 
-  return { state, today, current, previous, history: hist, insights: tips, recategorize, setBudget, reset, category, account };
+  return { state, today, current, previous, history: hist, insights: tips, recategorize, verifyAccount, setBudget, reset, category, account };
 }
 
 type Store = ReturnType<typeof useStoreValue>;

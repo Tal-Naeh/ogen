@@ -18,6 +18,11 @@ export function ilsCompact(n: number): string {
   return `₪${num0.format(n)}`;
 }
 
+/** Hebrew day count: "יום אחד" / "2 ימים". */
+export function daysHe(n: number): string {
+  return n === 1 ? "יום אחד" : `${n} ימים`;
+}
+
 export function pct(n: number): string {
   return `${Math.round(n * 100)}%`;
 }

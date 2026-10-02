@@ -45,7 +45,8 @@ export interface Cycle {
 export function cycleFor(today: Date, startDay: number, offset = 0): Cycle {
   const y = today.getFullYear();
   let m = today.getMonth();
-  if (today.getDate() < startDay) m -= 1;
+  // Compare against the clamped start (salary day 31 → Feb 28), not the raw day number.
+  if (today < dayInMonth(y, m, startDay)) m -= 1;
   m += offset;
   const start = dayInMonth(y, m, startDay);
   const end = addDays(dayInMonth(y, m + 1, startDay), -1);

@@ -14,7 +14,7 @@ export function useWidth<T extends HTMLElement>(): [React.RefObject<T | null>, n
 
 /** Round tick values: 0, 1,000, 2,000 … */
 export function niceTicks(max: number, count = 4): number[] {
-  if (max <= 0) return [0];
+  if (!(max > 0)) return [0, 1_000]; // empty data still gets a real scale
   const raw = max / count;
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
   const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) ?? raw;

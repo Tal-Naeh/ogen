@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { ArrowUp, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Card, Portal } from "../components/ui";
-import { toISO } from "../lib/date";
+import { inCycle } from "../lib/date";
 import { summarize } from "../lib/finance";
 import { ils } from "../lib/format";
 import { useStore } from "../lib/store";
@@ -52,7 +52,7 @@ function useAnswer() {
         ],
       };
     }
-    if (/יותר|השוואה|עלה/.test(q)) {
+    if (/יותר מ|השוואה|לעומת/.test(q)) {
       const deltas = current.categories
         .map((x) => {
           const prevPace = (by(previous, x.category.id) * (current.dayIndex + 1)) / previous.cycle.days;
@@ -66,9 +66,31 @@ function useAnswer() {
         bullets: deltas.slice(0, 4).map((x) => `${x.name}: ${ils(x.d)} יותר`),
       };
     }
-    const cat = cats.find((c) => q.includes(c.name) || (c.id === "dining" && /אוכל|מסעד|וולט|wolt/i.test(q)) || (c.id === "groceries" && /סופר|קניות אוכל/.test(q)));
+    const words = (name: string) => name.split(/\s+/).map((w) => w.replace(/^ו/, "")).filter((w) => w.length >= 3);
+    const categoryWords = new Set(cats.flatMap((c) => words(c.name)));
+    // A merchant named in the question ("כמה הוצאנו בשופרסל?") beats a category match,
+    // unless its name is also a category word ("דלק" is both a station and the fuel category).
+    const keyOf = (m: string) => m.split(" · ")[0].split(" ")[0];
+    const merchant = [...new Set(state.transactions.map((t) => t.merchant))]
+      .map(keyOf)
+      .filter((k) => k.length >= 3 && !categoryWords.has(k) && q.toLowerCase().includes(k.toLowerCase()))
+      .sort((a, b) => b.length - a.length)[0];
+    if (merchant) {
+      const key = merchant;
+      const txs = state.transactions.filter((t) => t.merchant.startsWith(key) && inCycle(t.date, current.cycle) && t.amount < 0);
+      const total = txs.reduce((a, t) => a - t.amount, 0);
+      return {
+        role: "assistant",
+        text: txs.length
+          ? `במחזור הנוכחי הוצאתם ${ils(total)} ב־${key}, ב־${txs.length} תנועות.`
+          : `לא מצאתי הוצאות ב־${key} במחזור הנוכחי.`,
+      };
+    }
+    // Category: any significant word of its name ("דלק" → "דלק ותחבורה"), plus a few aliases.
+    const aliases: Record<string, RegExp> = { dining: /מסעד|וולט|wolt|משלוח/i, groceries: /סופר|מכולת/, transport: /חניה|רכב|בנזין/, kids: /ילד/ };
+    const cat = cats.find((c) => c.kind === "variable" && (words(c.name).some((w) => q.includes(w)) || aliases[c.id]?.test(q)));
     if (cat) {
-      const txs = state.transactions.filter((t) => t.categoryId === cat.id && t.date >= toISO(current.cycle.start));
+      const txs = state.transactions.filter((t) => t.categoryId === cat.id && inCycle(t.date, current.cycle));
       const top = new Map<string, number>();
       for (const t of txs) top.set(t.merchant, (top.get(t.merchant) ?? 0) - t.amount);
       const now = by(current, cat.id);

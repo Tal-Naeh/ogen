@@ -125,13 +125,14 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
   );
 }
 
-export function Button({ children, onClick, variant = "primary", className, type = "button" }: { children: ReactNode; onClick?: () => void; variant?: "primary" | "ghost" | "soft"; className?: string; type?: "button" | "submit" }) {
+export function Button({ children, onClick, variant = "primary", className, type = "button", disabled }: { children: ReactNode; onClick?: () => void; variant?: "primary" | "ghost" | "soft"; className?: string; type?: "button" | "submit"; disabled?: boolean }) {
   return (
     <button
       type={type}
       onClick={onClick}
+      disabled={disabled}
       className={clsx(
-        "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold transition active:scale-[0.98]",
+        "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40",
         variant === "primary" && "bg-brand text-brand-ink hover:brightness-110",
         variant === "soft" && "bg-brand-soft text-brand hover:brightness-95",
         variant === "ghost" && "text-ink-2 hover:bg-surface-2 hover:text-ink",

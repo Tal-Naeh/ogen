@@ -108,6 +108,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 }
 
 function OtpDialog({ account, onClose }: { account: Account; onClose: () => void }) {
+  const { verifyAccount } = useStore();
   const [code, setCode] = useState("");
   const [done, setDone] = useState(false);
   return (
@@ -117,7 +118,15 @@ function OtpDialog({ account, onClose }: { account: Account; onClose: () => void
           <RefreshCw size={28} className="mx-auto animate-spin text-brand" />
           <p className="mt-4 text-[15px] font-semibold text-ink">מסנכרנים תנועות…</p>
           <p className="mt-1 text-[13px] text-ink-2">זה לוקח בדרך כלל פחות מדקה. אפשר לסגור את החלון.</p>
-          <Button className="mt-5" onClick={onClose}>סגירה</Button>
+          <Button
+            className="mt-5"
+            onClick={() => {
+              verifyAccount(account.id);
+              onClose();
+            }}
+          >
+            סגירה
+          </Button>
         </div>
       ) : (
         <>
@@ -132,7 +141,7 @@ function OtpDialog({ account, onClose }: { account: Account; onClose: () => void
             placeholder="••••••"
             aria-label="קוד אימות"
           />
-          <Button className="mt-5 w-full" onClick={() => code.length === 6 && setDone(true)}>
+          <Button className="mt-5 w-full" disabled={code.length !== 6} onClick={() => setDone(true)}>
             אימות וסנכרון
           </Button>
         </>

@@ -92,7 +92,7 @@ export function ForecastChart({ cycle, current, previous, projectedEnd, budget }
             {/* Today marker + end-of-cycle projection marker */}
             <circle cx={x(today)} cy={y(current[today] ?? 0)} r={5} fill="var(--series-1)" stroke="var(--surface)" strokeWidth={2} />
             <circle cx={x(n - 1)} cy={y(projectedEnd)} r={4.5} fill="var(--surface)" stroke="var(--series-1)" strokeWidth={2} />
-            <text x={x(n - 1) + 2} y={y(projectedEnd) - 10} fontSize={11.5} fontWeight={600} fill="var(--ink)" textAnchor="start" className="tnum">
+            <text x={x(n - 1) + 2} y={Math.abs(y(projectedEnd) - y(budget)) < 22 && projectedEnd <= budget ? y(projectedEnd) + 18 : y(projectedEnd) - 10} fontSize={11.5} fontWeight={600} fill="var(--ink)" textAnchor="start" className="tnum">
               {ilsCompact(projectedEnd)}
             </text>
 

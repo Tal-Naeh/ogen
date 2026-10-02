@@ -134,7 +134,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
+export function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void }) {
   const { state, category, account, recategorize } = useStore();
   const cat = category(tx.categoryId);
   const acc = account(tx.accountId);

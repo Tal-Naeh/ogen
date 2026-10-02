@@ -1,5 +1,5 @@
 import type { Account, Budget, Category, CategoryKind, Recurring, Settings, Transaction } from "../data/types";
-import { addDays, cycleFor, dayInMonth, diffDays, fromISO, inCycle, toISO, type Cycle } from "./date";
+import { addDays, cycleFor, dayInMonth, diffDays, fromISO, inCycle, type Cycle } from "./date";
 
 export interface FinanceState {
   categories: Category[];
@@ -77,11 +77,18 @@ export function summarize(s: FinanceState, today: Date, offset = 0): CycleSummar
     else if (k === "variable") variableSpent += -t.amount;
   }
 
-  const posted = new Set(txs.filter((t) => t.recurringId).map((t) => `${t.recurringId}@${t.date}`));
+  // A recurring occurrence counts as posted if a charge for it landed within a few days
+  // (banks often post a day or two late). Unposted ones from today onward are still expected.
+  const postedDates = new Map<string, Date[]>();
+  for (const t of txs) {
+    if (!t.recurringId) continue;
+    postedDates.set(t.recurringId, [...(postedDates.get(t.recurringId) ?? []), fromISO(t.date)]);
+  }
   const upcoming: UpcomingItem[] = [];
   for (const r of s.recurring) {
     for (const d of occurrences(r, cycle)) {
-      if (d > asOf && !posted.has(`${r.id}@${toISO(d)}`)) upcoming.push({ recurring: r, date: d });
+      const posted = (postedDates.get(r.id) ?? []).some((p) => Math.abs(diffDays(p, d)) <= 4);
+      if (!posted && d >= asOf) upcoming.push({ recurring: r, date: d });
     }
   }
   upcoming.sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -236,6 +243,10 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
 
   if (cur.projectedSurplus > 0) {
     const delta = cur.projectedSurplus - prev.leftToSpend;
+    const elapsed = (cur.dayIndex + 1) / cur.cycle.days;
+    const driver = cur.categories
+      .map((x) => ({ name: x.category.name, d: x.spent - (prev.categories.find((p) => p.category.id === x.category.id)?.spent ?? 0) * elapsed }))
+      .sort((a, b) => b.d - a.d)[0];
     out.push({
       id: "surplus",
       tone: "good",
@@ -244,7 +255,7 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
       body:
         delta >= 0
           ? `${ilsN(delta)} יותר מהמחזור הקודם. רוצים להעביר חלק לחיסכון כבר עכשיו, לפני שזה "נעלם"?`
-          : `${ilsN(-delta)} פחות מהמחזור הקודם, בעיקר בגלל אוכל בחוץ. עדיין בפלוס.`,
+          : `${ilsN(-delta)} פחות מהמחזור הקודם${driver && driver.d > 0 ? `, בעיקר בגלל ${driver.name}` : ""}. עדיין בפלוס.`,
       action: { label: "להגדרת יעד חיסכון", to: "/app/budgets" },
     });
   }

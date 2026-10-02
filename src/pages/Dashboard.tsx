@@ -5,9 +5,11 @@ import { CashflowBars } from "../components/charts/CashflowBars";
 import { ForecastChart } from "../components/charts/ForecastChart";
 import { CategoryChip, Icon } from "../components/Icon";
 import { TransactionRow } from "../components/TransactionRow";
+import { TxDrawer } from "./Transactions";
+import { useState } from "react";
 import { Card, CardHeader, Meter, Money, severityOf, StatusPill } from "../components/ui";
 import type { Insight } from "../lib/finance";
-import { fmtDate, fmtDateShort, fmtWeekday, ils } from "../lib/format";
+import { daysHe, fmtDate, fmtDateShort, fmtWeekday, ils } from "../lib/format";
 import { useStore } from "../lib/store";
 
 export function Dashboard() {
@@ -20,7 +22,7 @@ export function Dashboard() {
       <div className="rise lg:col-span-12">
         <h1 className="text-[32px] font-semibold tracking-[-0.025em] text-ink sm:text-[40px]">{greet} 👋</h1>
         <p className="mt-1 text-[16px] text-ink-2">
-          {c.projectedSurplus >= 0 ? "החודש מתקדם יפה." : "החודש קצת צפוף, אבל יש זמן לתקן."} נשארו {c.daysLeft} ימים עד המשכורת.
+          {c.projectedSurplus >= 0 ? "החודש מתקדם יפה." : "החודש קצת צפוף, אבל יש זמן לתקן."} {c.daysLeft === 1 ? "נשאר יום אחד" : `נשארו ${c.daysLeft} ימים`} עד המשכורת.
         </p>
       </div>
       <Hero />
@@ -149,18 +151,24 @@ export function Hero() {
           {fmtDateShort(c.cycle.start)} – {fmtDateShort(c.cycle.end)}
         </p>
         <span className="rounded-full bg-surface-2 px-3 py-1 text-[12.5px] font-medium text-ink-2">
-          עוד {c.daysLeft} ימים למשכורת
+          עוד {daysHe(c.daysLeft)} למשכורת
         </span>
       </div>
 
       <div className="mt-6 flex items-center justify-between gap-6">
         <div className="min-w-0">
-          <p className="text-[15px] font-medium text-ink-2">נשאר לכם להוציא</p>
+          <p className="text-[15px] font-medium text-ink-2">{c.leftToSpend >= 0 ? "נשאר לכם להוציא" : "עברתם את התקציב החודשי ב־"}</p>
           <p className="mt-1 text-[56px] font-semibold leading-none tracking-[-0.03em] text-ink sm:text-[68px]">
-            <span className="money">{ils(c.leftToSpend)}</span>
+            <span className="money">{ils(Math.abs(c.leftToSpend))}</span>
           </p>
           <p className="mt-3 text-[16px] text-ink-2">
-            בערך <span className="money font-semibold text-ink">{ils(Math.max(0, c.dailyAllowance))}</span> ליום
+            {c.leftToSpend >= 0 ? (
+              <>
+                בערך <span className="money font-semibold text-ink">{ils(c.dailyAllowance)}</span> ליום
+              </>
+            ) : (
+              "כדאי להאט עד המשכורת. העוזר יכול לעזור למצוא איפה"
+            )}
           </p>
           {positive && (
             <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-good-soft px-3 py-1.5 text-[13.5px] font-medium text-good-text">
@@ -271,7 +279,9 @@ function UpcomingRow({ name, categoryId, date, amount }: { name: string; categor
 
 function RecentTransactions() {
   const { state } = useStore();
+  const [openId, setOpenId] = useState<string | null>(null);
   const recent = state.transactions.slice(0, 7);
+  const open = openId ? state.transactions.find((t) => t.id === openId) : undefined;
   return (
     <Card className="rise lg:col-span-12">
       <CardHeader
@@ -285,9 +295,10 @@ function RecentTransactions() {
       />
       <div className="grid gap-x-4 px-3 pb-4 pt-2 md:grid-cols-2">
         {recent.map((t) => (
-          <TransactionRow key={t.id} tx={t} compact />
+          <TransactionRow key={t.id} tx={t} compact onClick={() => setOpenId(t.id)} />
         ))}
       </div>
+      {open && <TxDrawer tx={open} onClose={() => setOpenId(null)} />}
     </Card>
   );
 }
