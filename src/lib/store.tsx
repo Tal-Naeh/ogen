@@ -12,7 +12,7 @@ interface Overrides {
   settings?: Partial<Settings>;
 }
 
-const KEY = "shefa-overrides-v1";
+const KEY = "ogen-overrides-v1";
 
 function load(): Overrides {
   try {
@@ -129,7 +129,7 @@ export type ThemePref = "light" | "dark" | "system";
 export function useTheme(): [ThemePref, (t: ThemePref) => void] {
   const [pref, setPref] = useState<ThemePref>(() => {
     try {
-      return (localStorage.getItem("shefa-theme") as ThemePref) || "light";
+      return (localStorage.getItem("ogen-theme") as ThemePref) || "light";
     } catch {
       return "light";
     }
@@ -137,7 +137,7 @@ export function useTheme(): [ThemePref, (t: ThemePref) => void] {
   useEffect(() => {
     document.documentElement.dataset.theme = pref;
     try {
-      localStorage.setItem("shefa-theme", pref);
+      localStorage.setItem("ogen-theme", pref);
     } catch {
       /* storage unavailable */
     }

@@ -26,10 +26,10 @@ export function Logo({ className }: { className?: string }) {
           </linearGradient>
         </defs>
         <rect width="32" height="32" rx="9" fill={`url(#${gid})`} />
-        <path d="M8 20.5c3.2 0 4.4-9 8-9s4.8 9 8 9" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
-        <circle cx="16" cy="11.5" r="2.2" fill="#fff" />
+        <circle cx="16" cy="8.6" r="2.5" fill="none" stroke="#fff" strokeWidth="2.3" />
+        <path d="M16 11.1V24.6M11.6 14.6h8.8M8.6 18.6c.6 3.9 3.6 6 7.4 6s6.8-2.1 7.4-6M8.6 18.6l-1.4 1.6M23.4 18.6l1.4 1.6" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span className="text-[20px] font-bold tracking-tight text-ink">שפע</span>
+      <span className="text-[20px] font-bold tracking-tight text-ink">עוגן</span>
     </span>
   );
 }
@@ -92,7 +92,7 @@ export function Shell() {
           ))}
         </nav>
         <div className="mt-auto rounded-2xl border border-line bg-surface p-4">
-          <p className="text-[13px] font-semibold text-ink">שפע פרימיום</p>
+          <p className="text-[13px] font-semibold text-ink">עוגן פרימיום</p>
           <p className="mt-1 text-[12.5px] leading-relaxed text-ink-2">כל הפיצ׳רים ב־₪9.90 לחודש. בלי הפתעות.</p>
           <p className="mt-3 text-[11.5px] text-muted">סונכרן {relativeTime(lastSync)}</p>
         </div>

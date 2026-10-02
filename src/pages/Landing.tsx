@@ -41,7 +41,7 @@ export function Landing() {
               <span className="text-gradient">כמה באמת נשאר</span> החודש.
             </h1>
             <p className="mt-5 max-w-[540px] text-[18px] leading-relaxed text-ink-2">
-              שפע מרכזת את כל חשבונות הבנק וכרטיסי האשראי במקום אחד, ומראה לכם כמה נשאר להוציא עד המשכורת הבאה. בלי אקסלים, בלי הפתעות,{" "}
+              עוגן מרכז את כל חשבונות הבנק וכרטיסי האשראי במקום אחד, ומראה לכם כמה נשאר להוציא עד המשכורת הבאה. בלי אקסלים, בלי הפתעות,{" "}
               <span className="whitespace-nowrap">
                 ב־<span className="money font-semibold text-ink">₪{PRICE_MONTHLY.toFixed(2)}</span> לחודש.
               </span>
@@ -76,7 +76,7 @@ export function Landing() {
 
       {/* Features */}
       <section id="features" className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-20 sm:px-6 lg:py-28">
-        <SectionHead eyebrow="למה שפע" title="כל מה שצריך כדי לסיים את החודש בפלוס" sub="לא עוד גרף יפה שמראה מה כבר קרה. שפע מסתכלת קדימה, ומתריעה בזמן כדי שתספיקו לשנות." />
+        <SectionHead eyebrow="למה עוגן" title="כל מה שצריך כדי לסיים את החודש בפלוס" sub="לא עוד גרף יפה שמראה מה כבר קרה. עוגן מסתכל קדימה, ומתריע בזמן כדי שתספיקו לשנות." />
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <Feature icon={<CalendarClock size={22} />} title="חודש שמתחיל במשכורת" body="המחזור שלכם מתחיל ביום שהמשכורת נכנסת, לא ב־1 לחודש. ככה ״נשאר להוציא״ מספר את האמת." />
           <Feature icon={<BellRing size={22} />} title="התרעה לפני חריגה, לא אחריה" body="אם אוכל בחוץ רץ מהר מהתכנון, תדעו כבר באמצע החודש, עם תחזית כמה זה יעלה עד הסוף." />
@@ -94,7 +94,7 @@ export function Landing() {
           <ol className="mt-14 grid gap-5 md:grid-cols-3">
             {[
               ["מחברים חשבונות", "בוחרים בנק וכרטיסי אשראי ומאשרים גישת קריאה. אף אחד לא יכול להזיז שקל."],
-              ["שפע מסדרת הכל", "כל תנועה מקוטלגת אוטומטית, חיובים קבועים מזוהים, והתקציב מוצע לפי שלושת החודשים האחרונים."],
+              ["עוגן מסדר הכל", "כל תנועה מקוטלגת אוטומטית, חיובים קבועים מזוהים, והתקציב מוצע לפי שלושת החודשים האחרונים."],
               ["יודעים כל יום כמה נשאר", "מסך אחד עם המספר שחשוב: כמה נשאר להוציא עד המשכורת, וכמה זה ליום."],
             ].map(([t, b], i) => (
               <li key={t} className="rounded-[28px] border border-line bg-surface p-7 shadow-card">
@@ -132,7 +132,7 @@ export function Landing() {
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-4 py-8 text-[13px] text-muted sm:px-6">
           <Logo />
-          <p>© {new Date().getFullYear()} שפע · כלי לניהול תקציב אישי, לא ייעוץ פיננסי</p>
+          <p>© {new Date().getFullYear()} עוגן · כלי לניהול תקציב אישי, לא ייעוץ פיננסי</p>
         </div>
       </footer>
     </div>
@@ -266,7 +266,7 @@ function Pricing({ onChoose }: { onChoose: (p: Plan) => void }) {
       <div className="mx-auto mt-8 grid max-w-[880px] gap-5 md:grid-cols-[1.25fr_1fr]">
         <div className="relative rounded-[28px] border-2 border-brand bg-surface p-8 shadow-card">
           <span className="absolute -top-3 start-8 rounded-full bg-brand px-3 py-1 text-[12px] font-bold text-brand-ink">חודש ראשון חינם</span>
-          <p className="text-[15px] font-semibold text-ink-2">שפע</p>
+          <p className="text-[15px] font-semibold text-ink-2">עוגן</p>
           <p className="mt-2 flex items-baseline gap-2">
             <span className="money text-[52px] font-semibold leading-none tracking-tight text-ink">₪{perMonth.toFixed(2)}</span>
             <span className="text-[15px] text-muted">לחודש</span>
@@ -297,7 +297,7 @@ function Pricing({ onChoose }: { onChoose: (p: Plan) => void }) {
             <span className="text-[15px] text-muted">לחודש, בערך</span>
           </p>
           <p className="mt-5 text-[15px] leading-relaxed text-ink-2">
-            עם שפע במסלול השנתי חוסכים בערך <span className="money font-bold text-ink">₪200</span> בשנה, ומקבלים חודש לפי משכורת, התרעות מוקדמות ועוזר בעברית.
+            עם עוגן במסלול השנתי חוסכים בערך <span className="money font-bold text-ink">₪200</span> בשנה, ומקבלים חודש לפי משכורת, התרעות מוקדמות ועוזר בעברית.
           </p>
         </div>
       </div>
@@ -306,7 +306,7 @@ function Pricing({ onChoose }: { onChoose: (p: Plan) => void }) {
 }
 
 const faqs: [string, string][] = [
-  ["זה בטוח לחבר את חשבון הבנק?", "שפע מקבלת גישת קריאה בלבד, כך שאי אפשר להעביר כסף או לבצע פעולות בחשבון. החיבור יתבצע דרך ממשקי הבנקאות הפתוחה המוסדרים בישראל, והמידע נשמר מוצפן."],
+  ["זה בטוח לחבר את חשבון הבנק?", "עוגן מקבל גישת קריאה בלבד, כך שאי אפשר להעביר כסף או לבצע פעולות בחשבון. החיבור יתבצע דרך ממשקי הבנקאות הפתוחה המוסדרים בישראל, והמידע נשמר מוצפן."],
   ["אילו בנקים וכרטיסים נתמכים?", "המטרה היא לתמוך בכל הבנקים הגדולים ובחברות כרטיסי האשראי בישראל כבר בהשקה. נרשמים? ספרו לנו באיזה בנק אתם, וניתן לו עדיפות."],
   ["מה ההבדל בין ״נשאר להוציא״ ליתרה בבנק?", "היתרה לא יודעת מה עוד צפוי לרדת. ״נשאר להוציא״ לוקח את ההכנסות הצפויות, מוריד את כל החיובים הקבועים שעוד לא ירדו ואת החיסכון, ומראה כמה באמת פנוי עד המשכורת הבאה."],
   ["אפשר להשתמש בזוג?", "כן. חשבון אחד, שני משתמשים, אותו מחיר. כל אחד רואה את התמונה המלאה של משק הבית."],

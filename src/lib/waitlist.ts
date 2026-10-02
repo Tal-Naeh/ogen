@@ -25,9 +25,9 @@ export async function joinWaitlist(s: Omit<Signup, "ts">, honeypot = ""): Promis
     return;
   }
   try {
-    const list: Signup[] = JSON.parse(localStorage.getItem("shefa-waitlist") ?? "[]");
+    const list: Signup[] = JSON.parse(localStorage.getItem("ogen-waitlist") ?? "[]");
     list.push({ email: s.email, plan: s.plan, source: s.source, ts: body.ts });
-    localStorage.setItem("shefa-waitlist", JSON.stringify(list));
+    localStorage.setItem("ogen-waitlist", JSON.stringify(list));
   } catch {
     /* storage unavailable */
   }

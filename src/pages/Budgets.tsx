@@ -36,7 +36,7 @@ export function Budgets() {
     <div className="rise">
       <PageHeader
         title="תקציב"
-        subtitle="קובעים פעם אחת, ושפע מתריע לפני שחורגים, לא אחרי"
+        subtitle="קובעים פעם אחת, ועוגן מתריע לפני שחורגים, לא אחרי"
         action={
           <Button variant="soft" onClick={applySuggestions}>
             <Wand2 size={16} /> הצעת תקציב לפי 3 חודשים

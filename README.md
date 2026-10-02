@@ -1,4 +1,4 @@
-# שפע (Shefa)
+# עוגן (Ogen)
 
 Hebrew-first personal finance web app: a cheaper, cleaner alternative to RiseUp.
 Working name.
