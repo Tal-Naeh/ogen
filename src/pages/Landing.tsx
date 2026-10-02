@@ -339,6 +339,7 @@ function WaitlistForm({ plan, source, onDark }: { plan: Plan; source: string; on
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [touched, setTouched] = useState(false);
+  const [company, setCompany] = useState(""); // honeypot, hidden from people
   const invalid = touched && !isValidEmail(email);
 
   async function submit(e: React.FormEvent) {
@@ -347,7 +348,7 @@ function WaitlistForm({ plan, source, onDark }: { plan: Plan; source: string; on
     if (!isValidEmail(email)) return;
     setState("sending");
     try {
-      await joinWaitlist({ email: email.trim(), plan, source });
+      await joinWaitlist({ email: email.trim(), plan, source }, company);
       setState("done");
     } catch {
       setState("error");
@@ -369,6 +370,16 @@ function WaitlistForm({ plan, source, onDark }: { plan: Plan; source: string; on
   return (
     <form onSubmit={submit} noValidate>
       <div className={clsx("flex flex-col gap-2 rounded-[22px] p-1.5 sm:flex-row sm:rounded-full", onDark ? "bg-white/10" : "border border-line bg-surface shadow-card", invalid && "ring-2 ring-critical/60")}>
+        <input
+          type="text"
+          name="company"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          className="absolute -start-[9999px] h-px w-px opacity-0"
+        />
         <label className="sr-only" htmlFor={`email-${source}`}>כתובת מייל</label>
         <input
           id={`email-${source}`}
@@ -396,6 +407,9 @@ function WaitlistForm({ plan, source, onDark }: { plan: Plan; source: string; on
           {state === "sending" ? "שולחים…" : "הצטרפו לרשימת ההמתנה"}
         </button>
       </div>
+      <p className={clsx("mt-2.5 px-4 text-start text-[12px]", onDark ? "text-white/60" : "text-muted")}>
+        נשתמש במייל רק כדי לעדכן על ההשקה. לא נעביר אותו לאף אחד, ואפשר להסיר בכל רגע.
+      </p>
       {invalid && <p className={clsx("mt-2 px-4 text-start text-[13px]", onDark ? "text-[#ffb4b4]" : "text-critical-text")}>נראה שהמייל לא תקין</p>}
       {state === "error" && <p className={clsx("mt-2 px-4 text-start text-[13px]", onDark ? "text-[#ffb4b4]" : "text-critical-text")}>משהו השתבש. נסו שוב בעוד רגע.</p>}
     </form>

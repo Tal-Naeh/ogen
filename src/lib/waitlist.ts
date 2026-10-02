@@ -1,6 +1,6 @@
-// Waitlist signups. Set VITE_WAITLIST_ENDPOINT to any endpoint accepting a JSON POST
-// (Formspree, a Google Apps Script web app, your own API…). Without it, signups are kept
-// in this browser only, so the page works locally but collects nothing real.
+// Waitlist signups. Production posts to the bundled Vercel Function (/api/waitlist, private
+// Blob store). VITE_WAITLIST_ENDPOINT overrides it. In `pnpm dev` there is no /api, so signups
+// are kept in this browser only.
 
 export type Plan = "monthly" | "annual" | "undecided";
 
@@ -11,10 +11,10 @@ export interface Signup {
   ts: string;
 }
 
-const ENDPOINT = import.meta.env.VITE_WAITLIST_ENDPOINT as string | undefined;
+const ENDPOINT = (import.meta.env.VITE_WAITLIST_ENDPOINT as string | undefined) || (import.meta.env.PROD ? "/api/waitlist" : undefined);
 
-export async function joinWaitlist(s: Omit<Signup, "ts">): Promise<void> {
-  const body: Signup = { ...s, ts: new Date().toISOString() };
+export async function joinWaitlist(s: Omit<Signup, "ts">, honeypot = ""): Promise<void> {
+  const body = { ...s, ts: new Date().toISOString(), company: honeypot };
   if (ENDPOINT) {
     const r = await fetch(ENDPOINT, {
       method: "POST",
@@ -26,7 +26,7 @@ export async function joinWaitlist(s: Omit<Signup, "ts">): Promise<void> {
   }
   try {
     const list: Signup[] = JSON.parse(localStorage.getItem("shefa-waitlist") ?? "[]");
-    list.push(body);
+    list.push({ email: s.email, plan: s.plan, source: s.source, ts: body.ts });
     localStorage.setItem("shefa-waitlist", JSON.stringify(list));
   } catch {
     /* storage unavailable */
