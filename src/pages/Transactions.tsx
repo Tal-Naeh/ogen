@@ -59,7 +59,7 @@ export function Transactions() {
             />
           </label>
           <div className="inline-flex rounded-full border border-line bg-surface-2 p-1" role="radiogroup" aria-label="טווח זמן">
-            {([["cycle", "המחזור הנוכחי"], ["prev", "המחזור הקודם"], ["all", "הכל"]] as const).map(([v, l]) => (
+            {([["cycle", "החודש"], ["prev", "החודש הקודם"], ["all", "הכל"]] as const).map(([v, l]) => (
               <button key={v} role="radio" aria-checked={range === v} onClick={() => setRange(v)} className={clsx("rounded-full px-3.5 py-1.5 text-[13px] font-medium transition", range === v ? "bg-surface text-ink shadow-card" : "text-ink-2 hover:text-ink")}>
                 {l}
               </button>
@@ -190,7 +190,7 @@ export function TxDrawer({ tx, onClose }: { tx: Transaction; onClose: () => void
             </button>
           ))}
         </div>
-        <p className="mt-4 text-[12.5px] leading-relaxed text-muted">שינוי קטגוריה יילמד אוטומטית לתנועות הבאות מאותו בית עסק.</p>
+        <p className="mt-4 text-[12.5px] leading-relaxed text-muted">הקטגוריה תחול גם על שאר התנועות מאותו בית עסק.</p>
       </div>
     </div>
     </Portal>

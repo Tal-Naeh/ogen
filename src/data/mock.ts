@@ -1,8 +1,9 @@
 import type { Account, Budget, Category, Recurring, Settings, Transaction } from "./types";
 import { addDays, cycleFor, dayInMonth, diffDays, fromISO, toISO } from "../lib/date";
 
-// A realistic, deterministic Israeli household: two salaries, a mortgage,
-// one kid in gan, a bank account and two credit cards.
+// A realistic, deterministic Israeli household: two salaries, a mortgage, one kid in gan,
+// a bank account and two credit cards. The story: the account is in overdraft, but the
+// monthly cash flow has been positive for months, so the overdraft is shrinking.
 
 export const categories: Category[] = [
   { id: "salary", name: "משכורת", icon: "briefcase", kind: "income", tint: "#30d158" },
@@ -37,7 +38,7 @@ export const accounts: Account[] = [
     type: "bank",
     label: "חשבון עו״ש משותף",
     mask: "12-532-48213",
-    balance: 14_830,
+    balance: -19_480,
     status: "ok",
     lastSync: minutesAgo(14),
     color: "#e2001a",
@@ -66,7 +67,7 @@ export const accounts: Account[] = [
 
 export const recurring: Recurring[] = [
   { id: "r-salary-1", merchant: "משכורת · אקמה טכנולוגיות", categoryId: "salary", accountId: "hapoalim", amount: 18_420, dayOfMonth: 10, cadence: "monthly" },
-  { id: "r-salary-2", merchant: "משכורת · עיריית רמת גן", categoryId: "salary", accountId: "hapoalim", amount: 11_860, dayOfMonth: 9, cadence: "monthly" },
+  { id: "r-salary-2", merchant: "משכורת · עיריית רמת גן", categoryId: "salary", accountId: "hapoalim", amount: 4_060, dayOfMonth: 9, cadence: "monthly" },
   { id: "r-btl", merchant: "ביטוח לאומי · קצבת ילדים", categoryId: "allowance", accountId: "hapoalim", amount: 173, dayOfMonth: 20, cadence: "monthly" },
   { id: "r-mortgage", merchant: "לאומי למשכנתאות", categoryId: "housing", accountId: "hapoalim", amount: -6_180, dayOfMonth: 1, cadence: "monthly" },
   { id: "r-arnona", merchant: "ארנונה · עיריית תל אביב", categoryId: "utilities", accountId: "hapoalim", amount: -742, dayOfMonth: 15, cadence: "monthly" },
@@ -75,7 +76,7 @@ export const recurring: Recurring[] = [
   { id: "r-gan", merchant: "גן שקד · שכר לימוד", categoryId: "education", accountId: "hapoalim", amount: -2_450, dayOfMonth: 1, cadence: "monthly" },
   { id: "r-harel", merchant: "הראל ביטוח · משכנתא ודירה", categoryId: "insurance", accountId: "hapoalim", amount: -412, dayOfMonth: 5, cadence: "monthly" },
   { id: "r-migdal", merchant: "מגדל · ביטוח בריאות", categoryId: "insurance", accountId: "hapoalim", amount: -186, dayOfMonth: 5, cadence: "monthly" },
-  { id: "r-savings", merchant: "הפקדה · קופת גמל להשקעה", categoryId: "savings", accountId: "hapoalim", amount: -1_500, dayOfMonth: 11, cadence: "monthly" },
+  { id: "r-savings", merchant: "הפקדה · קופת גמל להשקעה", categoryId: "savings", accountId: "hapoalim", amount: -600, dayOfMonth: 11, cadence: "monthly" },
   { id: "r-partner", merchant: "פרטנר תקשורת", categoryId: "telecom", accountId: "isracard", amount: -159, previousAmount: -139, dayOfMonth: 12, cadence: "monthly" },
   { id: "r-bezeq", merchant: "בזק בינלאומי · סיבים", categoryId: "telecom", accountId: "isracard", amount: -99, dayOfMonth: 12, cadence: "monthly" },
   { id: "r-holmes", merchant: "הולמס פלייס", categoryId: "subscriptions", accountId: "isracard", amount: -289, dayOfMonth: 3, cadence: "monthly" },
@@ -99,8 +100,8 @@ export const budgets: Budget[] = [
 ];
 
 export const settings: Settings = {
-  cycleStartDay: 10,
-  monthlySavingsGoal: 1_500,
+  cycleStartDay: 1, // calendar months: the cash-flow view doesn't revolve around payday
+  monthlySavingsGoal: 600,
   householdName: "משפחת לוי",
 };
 

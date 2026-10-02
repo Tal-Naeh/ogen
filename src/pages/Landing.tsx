@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import {
-  ArrowLeft, BellRing, CalendarClock, Check, ChevronDown, CreditCard, Layers, Lock, MessageCircle, ShieldCheck, Sparkles, TrendingUp,
+  ArrowLeft, BellRing, CalendarClock, Check, ChevronDown, CreditCard, Lock, MessageCircle, Repeat, ShieldCheck, Sparkles, TrendingUp,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
@@ -36,12 +36,12 @@ export function Landing() {
               <span className="h-1.5 w-1.5 rounded-full bg-brand" /> בקרוב בישראל · נרשמים מקבלים חודש ראשון חינם
             </span>
             <h1 className="mt-6 text-[40px] font-semibold leading-[1.05] tracking-[-0.035em] text-ink sm:text-[56px]">
-              סוף סוף יודעים
+              מפסיקים לספור
               <br />
-              <span className="text-gradient">כמה באמת נשאר</span> החודש.
+              <span className="text-gradient">עד המשכורת.</span>
             </h1>
             <p className="mt-5 max-w-[540px] text-[18px] leading-relaxed text-ink-2">
-              עוגן מרכז את כל חשבונות הבנק וכרטיסי האשראי במקום אחד, ומראה לכם כמה נשאר להוציא עד המשכורת הבאה. בלי אקסלים, בלי הפתעות,{" "}
+              מתחילים לחשוב בתזרים: כמה נכנס, כמה יצא, ומה נשאר. כשהתזרים חיובי חודש אחרי חודש, גם המינוס נסגר מעצמו. עוגן מרכז את כל החשבונות והכרטיסים ומראה לכם בדיוק לאן הכסף הולך,{" "}
               <span className="whitespace-nowrap">
                 ב־<span className="money font-semibold text-ink">₪{PRICE_MONTHLY.toFixed(2)}</span> לחודש.
               </span>
@@ -76,14 +76,14 @@ export function Landing() {
 
       {/* Features */}
       <section id="features" className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-20 sm:px-6 lg:py-28">
-        <SectionHead eyebrow="למה עוגן" title="כל מה שצריך כדי לסיים את החודש בפלוס" sub="לא עוד גרף יפה שמראה מה כבר קרה. עוגן מסתכל קדימה, ומתריע בזמן כדי שתספיקו לשנות." />
+        <SectionHead eyebrow="למה עוגן" title="כל מה שצריך כדי לסגור כל חודש בפלוס" sub="לא עוד גרף שמראה מה כבר קרה. עוגן מסתכל קדימה ומתריע בזמן, כשעוד אפשר לשנות." />
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <Feature icon={<CalendarClock size={22} />} title="חודש שמתחיל במשכורת" body="המחזור שלכם מתחיל ביום שהמשכורת נכנסת, לא ב־1 לחודש. ככה ״נשאר להוציא״ מספר את האמת." />
-          <Feature icon={<BellRing size={22} />} title="התרעה לפני חריגה, לא אחריה" body="אם אוכל בחוץ רץ מהר מהתכנון, תדעו כבר באמצע החודש, עם תחזית כמה זה יעלה עד הסוף." />
-          <Feature icon={<TrendingUp size={22} />} title="ציד מנויים והתייקרויות" body="כל חיוב קבוע מזוהה אוטומטית. נטפליקס העלו מחיר? הסלולר התייקר? תראו את זה מיד, עם העלות השנתית." />
-          <Feature icon={<Layers size={22} />} title="תשלומים ואשראי בלי כפילויות" body="עסקאות בתשלומים מוצגות כ״תשלום 4 מתוך 12״, וחיוב כרטיס האשראי בעו״ש לא נספר פעמיים." />
-          <Feature icon={<MessageCircle size={22} />} title="עוזר שמדבר עברית" body="״אפשר להרשות לנו חופשה בדצמבר?״ שאלו בשפה פשוטה, וקבלו תשובה לפי הנתונים האמיתיים שלכם." />
-          <Feature icon={<ShieldCheck size={22} />} title="פרטיות בלי אותיות קטנות" body="גישת קריאה בלבד, הצפנה מלאה, אפס פרסומות ואפס מכירת מידע. מוחקים הכל בלחיצה אחת." />
+          <Feature icon={<CalendarClock size={22} />} title="תזרים, לא משכורת" body="מה שקובע הוא לא מתי נכנסת המשכורת, אלא אם בסוף החודש נכנס יותר ממה שיצא. זה המספר שעוגן שם במרכז." />
+          <Feature icon={<TrendingUp size={22} />} title="מפת יציאה מהמינוס" body="אם החשבון במינוס, עוגן מחשב מתי הוא ייסגר בקצב הנוכחי, ומראה כמה כל שינוי קטן מקדים את היום הזה." />
+          <Feature icon={<BellRing size={22} />} title="התרעה לפני חריגה, ולא אחריה" body="אם ההוצאות על אוכל בחוץ רצות מהר מהתכנון, תדעו על זה כבר באמצע החודש, עם תחזית עד סופו." />
+          <Feature icon={<MessageCircle size={22} />} title="עוזר שמדבר עברית" body="״נוכל להרשות לעצמנו חופשה בדצמבר?״ שואלים בשפה פשוטה, ומקבלים תשובה לפי הנתונים שלכם." />
+          <Feature icon={<Repeat size={22} />} title="מנויים והתייקרויות" body="כל חיוב קבוע מזוהה אוטומטית. נטפליקס התייקרה? חבילת הסלולר עלתה? תראו את זה מיד, עם העלות השנתית." />
+          <Feature icon={<ShieldCheck size={22} />} title="פרטיות בלי אותיות קטנות" body="גישת קריאה בלבד, הצפנה מלאה, בלי פרסומות ובלי מכירת מידע. מוחקים הכל בלחיצה אחת." />
         </div>
       </section>
 
@@ -93,9 +93,9 @@ export function Landing() {
           <SectionHead eyebrow="איך זה עובד" title="שלוש דקות, ואתם מסודרים" />
           <ol className="mt-14 grid gap-5 md:grid-cols-3">
             {[
-              ["מחברים חשבונות", "בוחרים בנק וכרטיסי אשראי ומאשרים גישת קריאה. אף אחד לא יכול להזיז שקל."],
-              ["עוגן מסדר הכל", "כל תנועה מקוטלגת אוטומטית, חיובים קבועים מזוהים, והתקציב מוצע לפי שלושת החודשים האחרונים."],
-              ["יודעים כל יום כמה נשאר", "מסך אחד עם המספר שחשוב: כמה נשאר להוציא עד המשכורת, וכמה זה ליום."],
+              ["מחברים חשבונות", "בוחרים בנק וכרטיסי אשראי ומאשרים גישת קריאה בלבד. אף אחד לא יכול להזיז שקל."],
+              ["עוגן מסדר הכל", "כל תנועה מקוטלגת אוטומטית, החיובים הקבועים מזוהים, ותקציב מוצע לפי שלושת החודשים האחרונים."],
+              ["רואים את התמונה המלאה", "מסך אחד עם מה שחשוב: כמה נכנס, כמה יצא, ולאן היתרה הולכת בחודשים הקרובים."],
             ].map(([t, b], i) => (
               <li key={t} className="rounded-[28px] border border-line bg-surface p-7 shadow-card">
                 <span className="hero-card grid h-11 w-11 place-items-center rounded-2xl text-[18px] font-bold text-white">{i + 1}</span>
@@ -186,8 +186,8 @@ function HeroVisual() {
       <FloatCard className="-bottom-8 start-[-12px] hidden sm:flex lg:start-[-36px]">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-warning-soft text-warning-text"><TrendingUp size={19} /></span>
         <span>
-          <span className="block text-[13.5px] font-semibold text-ink">Netflix העלו את המחיר</span>
-          <span className="block text-[12.5px] text-ink-2">עוד <span className="money">₪60</span> בשנה. לבדוק מסלול זול?</span>
+          <span className="block text-[13.5px] font-semibold text-ink">המחיר של Netflix עלה</span>
+          <span className="block text-[12.5px] text-ink-2"><span className="money">₪60</span> יותר בשנה. אולי יש מסלול זול יותר?</span>
         </span>
       </FloatCard>
       <FloatCard className="-top-6 end-[-8px] hidden sm:flex lg:end-[-28px]">
@@ -234,11 +234,11 @@ function Pricing({ onChoose }: { onChoose: (p: Plan) => void }) {
   const perMonth = annual ? PRICE_ANNUAL / 12 : PRICE_MONTHLY;
   const included = [
     "חיבור כל הבנקים וכרטיסי האשראי",
-    "״נשאר להוציא״ ותחזית יומית",
+    "תזרים חודשי ותחזית יתרה",
     "תקציב חכם והתרעות לפני חריגה",
     "זיהוי מנויים והתייקרויות",
     "עוזר אישי בעברית",
-    "חשבון משותף לזוג, בלי תוספת",
+    "חשבון משותף לבני זוג, בלי תוספת תשלום",
   ];
   return (
     <section id="pricing" className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-20 sm:px-6 lg:py-28">
@@ -297,7 +297,7 @@ function Pricing({ onChoose }: { onChoose: (p: Plan) => void }) {
             <span className="text-[15px] text-muted">לחודש, בערך</span>
           </p>
           <p className="mt-5 text-[15px] leading-relaxed text-ink-2">
-            עם עוגן במסלול השנתי חוסכים בערך <span className="money font-bold text-ink">₪200</span> בשנה, ומקבלים חודש לפי משכורת, התרעות מוקדמות ועוזר בעברית.
+            עם עוגן במסלול השנתי חוסכים בערך <span className="money font-bold text-ink">₪200</span> בשנה, ומקבלים תחזית תזרים, התרעות מוקדמות ועוזר בעברית.
           </p>
         </div>
       </div>
@@ -307,10 +307,10 @@ function Pricing({ onChoose }: { onChoose: (p: Plan) => void }) {
 
 const faqs: [string, string][] = [
   ["זה בטוח לחבר את חשבון הבנק?", "עוגן מקבל גישת קריאה בלבד, כך שאי אפשר להעביר כסף או לבצע פעולות בחשבון. החיבור יתבצע דרך ממשקי הבנקאות הפתוחה המוסדרים בישראל, והמידע נשמר מוצפן."],
-  ["אילו בנקים וכרטיסים נתמכים?", "המטרה היא לתמוך בכל הבנקים הגדולים ובחברות כרטיסי האשראי בישראל כבר בהשקה. נרשמים? ספרו לנו באיזה בנק אתם, וניתן לו עדיפות."],
-  ["מה ההבדל בין ״נשאר להוציא״ ליתרה בבנק?", "היתרה לא יודעת מה עוד צפוי לרדת. ״נשאר להוציא״ לוקח את ההכנסות הצפויות, מוריד את כל החיובים הקבועים שעוד לא ירדו ואת החיסכון, ומראה כמה באמת פנוי עד המשכורת הבאה."],
-  ["אפשר להשתמש בזוג?", "כן. חשבון אחד, שני משתמשים, אותו מחיר. כל אחד רואה את התמונה המלאה של משק הבית."],
-  ["מתי זה יוצא, וכמה עולה?", `אנחנו בבנייה. המחיר בהשקה יהיה ₪${PRICE_MONTHLY.toFixed(2)} לחודש או ₪${PRICE_ANNUAL} לשנה, והנרשמים לרשימת ההמתנה יקבלו חודש ראשון חינם.`],
+  ["אילו בנקים וכרטיסים נתמכים?", "המטרה היא לתמוך בכל הבנקים הגדולים ובכל חברות כרטיסי האשראי בישראל כבר ביום ההשקה."],
+  ["מה זה תזרים חודשי, ולמה הוא חשוב יותר מהיתרה?", "תזרים הוא ההפרש בין כל מה שנכנס לחשבון בחודש לבין כל מה שיצא ממנו. היתרה היא תמונת מצב של רגע אחד, והתזרים מראה את הכיוון. כשהוא חיובי חודש אחרי חודש, היתרה עולה, וגם מינוס נסגר בסופו של דבר."],
+  ["אפשר להשתמש יחד עם בן או בת הזוג?", "כן. חשבון אחד, שני משתמשים, אותו מחיר. כל אחד רואה את התמונה המלאה של משק הבית."],
+  ["מתי משיקים, וכמה זה עולה?", `אנחנו בשלבי פיתוח. המחיר בהשקה יהיה ₪${PRICE_MONTHLY.toFixed(2)} לחודש או ₪${PRICE_ANNUAL} לשנה, והנרשמים לרשימת ההמתנה יקבלו חודש ראשון חינם.`],
   ["אתם מוכרים את המידע שלי?", "לא, ולעולם לא. המודל העסקי שלנו פשוט: אתם משלמים מנוי, אנחנו עובדים בשבילכם. בלי פרסומות ובלי שותפים שמקבלים את הנתונים."],
 ];
 
@@ -408,9 +408,9 @@ function WaitlistForm({ plan, source, onDark }: { plan: Plan; source: string; on
         </button>
       </div>
       <p className={clsx("mt-2.5 px-4 text-start text-[12px]", onDark ? "text-white/60" : "text-muted")}>
-        נשתמש במייל רק כדי לעדכן על ההשקה. לא נעביר אותו לאף אחד, ואפשר להסיר בכל רגע.
+        נשתמש בכתובת רק כדי לעדכן אתכם על ההשקה. לא נעביר אותה לאף אחד, ותוכלו להסיר אותה בכל רגע.
       </p>
-      {invalid && <p className={clsx("mt-2 px-4 text-start text-[13px]", onDark ? "text-[#ffb4b4]" : "text-critical-text")}>נראה שהמייל לא תקין</p>}
+      {invalid && <p className={clsx("mt-2 px-4 text-start text-[13px]", onDark ? "text-[#ffb4b4]" : "text-critical-text")}>כתובת המייל לא נראית תקינה</p>}
       {state === "error" && <p className={clsx("mt-2 px-4 text-start text-[13px]", onDark ? "text-[#ffb4b4]" : "text-critical-text")}>משהו השתבש. נסו שוב בעוד רגע.</p>}
     </form>
   );

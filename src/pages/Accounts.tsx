@@ -24,7 +24,7 @@ export function Accounts() {
     <div className="rise">
       <PageHeader
         title="חשבונות וכרטיסים"
-        subtitle={`יתרה בעו״ש ${ils(balance)} · ${state.accounts.length} חיבורים`}
+        subtitle={`יתרה בעו״ש: ${ils(balance)} · ${state.accounts.length} חשבונות מחוברים`}
         action={
           <Button onClick={() => setConnect(true)}>
             <Plus size={16} /> חיבור חשבון
@@ -171,7 +171,7 @@ function ConnectDialog({ onClose }: { onClose: () => void }) {
         ))}
       </div>
       <Button className="mt-5 w-full" onClick={onClose}>
-        {pick ? `המשך ל${pick}` : "בחרו ספק"}
+        {pick ? `המשך ל${/^[\u0590-\u05FF]/.test(pick) ? "" : "־"}${pick}` : "בחרו בנק או כרטיס"}
       </Button>
     </Modal>
   );

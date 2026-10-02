@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Minus, PiggyBank, Plus, Wand2 } from "lucide-react";
 import { useMemo } from "react";
+import { ForecastChart } from "../components/charts/ForecastChart";
 import { CategoryChip } from "../components/Icon";
 import { Button, Card, CardHeader, Meter, PageHeader, severityOf } from "../components/ui";
 import { summarize } from "../lib/finance";
@@ -8,7 +9,7 @@ import { ils } from "../lib/format";
 import { useStore } from "../lib/store";
 
 export function Budgets() {
-  const { state, today, current: c, setBudget } = useStore();
+  const { state, today, current: c, previous, setBudget } = useStore();
 
   // Average of the last three full cycles, for "suggested" budgets.
   const avg = useMemo(() => {
@@ -36,31 +37,38 @@ export function Budgets() {
     <div className="rise">
       <PageHeader
         title="תקציב"
-        subtitle="קובעים פעם אחת, ועוגן מתריע לפני שחורגים, לא אחרי"
+        subtitle="קובעים פעם אחת, ועוגן מתריע לפני חריגה, ולא אחריה"
         action={
           <Button variant="soft" onClick={applySuggestions}>
-            <Wand2 size={16} /> הצעת תקציב לפי 3 חודשים
+            <Wand2 size={16} /> הצעת תקציב לפי 3 החודשים האחרונים
           </Button>
         }
       />
 
       <div className="grid gap-5 lg:grid-cols-12">
         <div className="grid gap-5 sm:grid-cols-3 lg:col-span-12">
-          <Stat label="תקציב משתנות למחזור" value={ils(total)} sub={`נוצלו ${ils(spent)} (${Math.round((spent / total) * 100)}%)`} />
-          <Stat label="קבועות + חיסכון" value={ils(fixed + c.savings)} sub="משכנתא, גן, ביטוחים, מנויים והפקדה" />
+          <Stat label="תקציב חודשי להוצאות משתנות" value={ils(total)} sub={`נוצלו ${ils(spent)} (${Math.round((spent / total) * 100)}%)`} />
+          <Stat label="הוצאות קבועות וחיסכון" value={ils(fixed + c.savings)} sub="משכנתא, גן, ביטוחים, מנויים והפקדה" />
           <Stat
-            label="מרווח לא מתוכנן"
+            label="כסף פנוי שלא תוקצב"
             value={ils(room)}
-            sub={room >= 0 ? "כסף פנוי אחרי כל התקציבים. אפשר לחסוך אותו" : "התקציבים גבוהים מההכנסה הצפויה"}
+            sub={room >= 0 ? "מה שנשאר אחרי כל התקציבים. אפשר להעביר אותו לחיסכון" : "התקציבים גבוהים מההכנסה הצפויה"}
             tone={room >= 0 ? "good" : "critical"}
           />
         </div>
 
+        <Card className="lg:col-span-12">
+          <CardHeader title="קצב ההוצאות המשתנות" subtitle="מצטבר לאורך החודש, מול התקציב והחודש הקודם" />
+          <div className="px-4 pb-5 pt-4 sm:px-6">
+            <ForecastChart cycle={c.cycle} current={c.cumulative} previous={previous.cumulative} projectedEnd={c.projectedVariable} budget={c.variableBudget} />
+          </div>
+        </Card>
+
         <Card className="lg:col-span-8">
-          <CardHeader title="הוצאות משתנות" subtitle="לחצו על + / − כדי לעדכן, השינוי נשמר מיד" />
+          <CardHeader title="הוצאות משתנות" subtitle="עדכנו עם + ו־−. השינוי נשמר מיד." />
           <ul className="divide-y divide-line px-5 pb-2 pt-2 sm:px-6">
             {c.categories.map((x) => {
-              const sev = severityOf(x.spent, x.limit, x.pace);
+              const sev = severityOf(x.spent, x.limit, x.pace, c.dayIndex);
               const a = avg.get(x.category.id) ?? 0;
               return (
                 <li key={x.category.id} className="py-4">
@@ -69,7 +77,7 @@ export function Budgets() {
                     <div className="min-w-[140px] flex-1">
                       <p className="text-[14.5px] font-semibold text-ink">{x.category.name}</p>
                       <p className="text-[12.5px] text-muted">
-                        {x.count} תנועות · ממוצע 3 חודשים <span className="money">{ils(a)}</span>
+                        {x.count} תנועות · ממוצע חודשי: <span className="money">{ils(a)}</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-1 rounded-full border border-line bg-surface-2 p-1">
@@ -112,15 +120,16 @@ export function Budgets() {
             <p className="mt-3 text-[11.5px] text-muted">הערכה בלבד, לא ייעוץ השקעות.</p>
           </Card>
           <Card className="p-6">
-            <h3 className="text-[15px] font-semibold text-ink">איך מחושב ״נשאר להוציא״?</h3>
+            <h3 className="text-[15px] font-semibold text-ink">איך מחושב התזרים החודשי?</h3>
             <dl className="mt-4 space-y-2 text-[13.5px]">
-              <Line label="הכנסות צפויות במחזור" v={income} />
+              <Line label="הכנסות החודש (כולל צפויות)" v={c.projectedIn} />
               <Line label="פחות הוצאות קבועות" v={-fixed} />
               <Line label="פחות חיסכון" v={-c.savings} />
-              <Line label="פחות משתנות עד היום" v={-c.variableSpent} />
+              <Line label="פחות הוצאות משתנות (לפי הקצב הנוכחי)" v={-c.projectedVariable} />
               <div className="border-t border-line pt-2">
-                <Line label="נשאר להוציא" v={c.leftToSpend} bold />
+                <Line label="תזרים חודשי צפוי" v={c.projectedNet} bold />
               </div>
+              <p className="pt-2 text-[12.5px] leading-relaxed text-muted">כשהתזרים חיובי, היתרה עולה מחודש לחודש. אם החשבון במינוס, המינוס נסגר בהדרגה.</p>
             </dl>
           </Card>
         </div>

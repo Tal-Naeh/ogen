@@ -36,7 +36,7 @@ export function TransactionRow({ tx, onClick, compact }: { tx: Transaction; onCl
           {excluded && (
             <>
               <span aria-hidden>·</span>
-              <span>לא נספר פעמיים</span>
+              <span>לא נספר כהוצאה</span>
             </>
           )}
           {!compact && (

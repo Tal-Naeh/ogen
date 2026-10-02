@@ -53,9 +53,9 @@ export function ForecastChart({ cycle, current, previous, projectedEnd, budget }
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1.5">
-        <LegendItem swatch={<LineKey color="var(--series-1)" />}>המחזור הנוכחי</LegendItem>
+        <LegendItem swatch={<LineKey color="var(--series-1)" />}>החודש</LegendItem>
         <LegendItem swatch={<LineKey color="var(--series-1)" dashed />}>תחזית</LegendItem>
-        <LegendItem swatch={<LineKey color="var(--muted)" />}>המחזור הקודם</LegendItem>
+        <LegendItem swatch={<LineKey color="var(--muted)" />}>החודש הקודם</LegendItem>
       </div>
       <div ref={ref} className="relative w-full select-none" style={{ height: H }}>
         {width > 0 && (
@@ -65,7 +65,7 @@ export function ForecastChart({ cycle, current, previous, projectedEnd, budget }
             onPointerMove={onMove}
             onPointerLeave={() => setHover(null)}
             role="img"
-            aria-label={`הוצאות משתנות מצטברות: ${ils(current[today] ?? 0)} עד היום, תחזית ${ils(projectedEnd)} לסוף המחזור, תקציב ${ils(budget)}`}
+            aria-label={`הוצאות משתנות מצטברות: ${ils(current[today] ?? 0)} עד היום, תחזית ${ils(projectedEnd)} לסוף החודש, תקציב ${ils(budget)}`}
             className="touch-pan-y"
             style={{ direction: "ltr" }}
           >
@@ -114,8 +114,8 @@ export function ForecastChart({ cycle, current, previous, projectedEnd, budget }
         {h !== null && width > 0 && (
           <Tooltip x={x(h)} y={4} width={width}>
             <p className="mb-1.5 font-semibold text-ink">{fmtDate(addDays(cycle.start, h))}</p>
-            <Row color="var(--series-1)" dashed={h > today} label={h <= today ? "המחזור הנוכחי" : "תחזית"} value={h <= today ? current[h] : projAt(h)} />
-            {prevVals[h] !== undefined && <Row color="var(--muted)" label="המחזור הקודם" value={prevVals[h]} />}
+            <Row color="var(--series-1)" dashed={h > today} label={h <= today ? "החודש" : "תחזית"} value={h <= today ? current[h] : projAt(h)} />
+            {prevVals[h] !== undefined && <Row color="var(--muted)" label="החודש הקודם" value={prevVals[h]} />}
           </Tooltip>
         )}
       </div>

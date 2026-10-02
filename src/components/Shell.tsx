@@ -93,7 +93,7 @@ export function Shell() {
         </nav>
         <div className="mt-auto rounded-2xl border border-line bg-surface p-4">
           <p className="text-[13px] font-semibold text-ink">עוגן פרימיום</p>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-ink-2">כל הפיצ׳רים ב־₪9.90 לחודש. בלי הפתעות.</p>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-ink-2">כל היכולות ב־₪9.90 לחודש, בלי הפתעות.</p>
           <p className="mt-3 text-[11.5px] text-muted">סונכרן {relativeTime(lastSync)}</p>
         </div>
       </aside>
@@ -112,7 +112,7 @@ export function Shell() {
                 <span className="absolute end-2 top-2 h-2 w-2 rounded-full bg-brand ring-2 ring-page" />
               </button>
               <span className="grid h-9 w-9 place-items-center rounded-full bg-surface-3 text-[13px] font-bold text-ink-2" aria-hidden>
-                ד״ל
+                ל
               </span>
             </div>
           </div>

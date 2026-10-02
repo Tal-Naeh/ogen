@@ -35,7 +35,7 @@ export function Recurring() {
 
   return (
     <div className="rise">
-      <PageHeader title="קבועים ומנויים" subtitle="כל מה שיורד ונכנס כל חודש, מזוהה אוטומטית מהתנועות" />
+      <PageHeader title="קבועים ומנויים" subtitle="כל החיובים וההכנסות הקבועים, מזוהים אוטומטית מהתנועות" />
 
       <div className="mb-5 grid gap-5 sm:grid-cols-3">
         <Card className="p-5" as="div">
@@ -52,7 +52,7 @@ export function Recurring() {
           <p className="text-[13px] text-muted">התייקרויות שזוהו</p>
           <p className="mt-1 text-[28px] font-bold tracking-tight text-ink">{increases.length}</p>
           <p className="mt-1 text-[12.5px] text-ink-2">
-            עוד <span className="money">{ils(increases.reduce((a, r) => a + (Math.abs(r.amount) - Math.abs(r.previousAmount!)) * (r.cadence === "monthly" ? 12 : 6), 0))}</span> בשנה
+            <span className="money">{ils(increases.reduce((a, r) => a + (Math.abs(r.amount) - Math.abs(r.previousAmount!)) * (r.cadence === "monthly" ? 12 : 6), 0))}</span> יותר בשנה
           </p>
         </Card>
       </div>
@@ -119,7 +119,7 @@ export function Recurring() {
                       isFlagged ? "border-brand bg-brand-soft text-brand" : "border-line text-ink-2 hover:border-line-strong",
                     )}
                   >
-                    <BellRing size={13} /> {isFlagged ? "נזכיר לבטל" : "לא בשימוש?"}
+                    <BellRing size={13} /> {isFlagged ? "נזכיר לכם לבטל" : "לא בשימוש?"}
                   </button>
                 )}
               </li>

@@ -16,9 +16,12 @@ interface Msg {
 const suggestions = [
   "כמה הוצאנו על אוכל בחוץ החודש?",
   "איפה הוצאנו יותר מהחודש שעבר?",
-  "אפשר להרשות לנו חופשה של ₪6,000 בדצמבר?",
+  "נוכל להרשות לעצמנו חופשה של ₪6,000 בדצמבר?",
   "אילו מנויים אפשר לבטל?",
 ];
+
+// Hebrew "ב" prefix: attached to Hebrew words ("בשופרסל"), with a maqaf before Latin ones ("ב־Wolt").
+const inName = (name: string) => (/^[\u0590-\u05FF]/.test(name) ? `ב${name}` : `ב־${name}`);
 
 // Rule-based answers over the user's own data. Swap for an LLM with tool calls later.
 function useAnswer() {
@@ -32,23 +35,23 @@ function useAnswer() {
       const total = subs.reduce((a, r) => a + Math.abs(r.amount) * 12, 0);
       return {
         role: "assistant",
-        text: `יש לכם ${subs.length} מנויים שעולים יחד ${ils(total)} בשנה. אלה המועמדים הבולטים לבדיקה:`,
+        text: `יש לכם ${subs.length} מנויים, שעולים יחד ${ils(total)} בשנה. אלה היקרים שבהם:`,
         bullets: subs.slice(0, 4).map((r) => `${r.merchant}: ${ils(Math.abs(r.amount), { cents: true })} לחודש (${ils(Math.abs(r.amount) * 12)} בשנה)${r.previousAmount ? ", התייקר לאחרונה" : ""}`),
       };
     }
     if (/חופשה|להרשות|לחסוך/.test(q)) {
       const amount = Number((q.match(/[\d,]+/)?.[0] ?? "6000").replace(/,/g, "")) || 6000;
-      const avgSurplus = [-1, -2, -3].map((o) => summarize(state, today, o).leftToSpend).reduce((a, b) => a + b, 0) / 3;
+      const avgSurplus = [-1, -2, -3].map((o) => summarize(state, today, o).projectedNet).reduce((a, b) => a + b, 0) / 3;
       const months = 2;
       const ok = avgSurplus * months + Math.max(0, current.projectedSurplus) >= amount;
       return {
         role: "assistant",
         text: ok
-          ? `כן, נראה שזה אפשרי. בשלושת המחזורים האחרונים נשארו לכם בממוצע ${ils(avgSurplus)} בסוף כל מחזור, והמחזור הנוכחי צפוי להסתיים עם עודף של ${ils(current.projectedSurplus)}.`
-          : `זה יהיה צפוף. בממוצע נשארים לכם ${ils(avgSurplus)} בסוף מחזור, אז עד דצמבר תצברו בערך ${ils(avgSurplus * months)}.`,
+          ? `כן, נראה שזה אפשרי. בשלושת החודשים האחרונים התזרים שלכם היה בממוצע ${ils(avgSurplus, { sign: true })} בחודש, והחודש צפוי להיסגר בתזרים של ${ils(current.projectedNet, { sign: true })}.`
+          : `זה יהיה צפוף. התזרים הממוצע שלכם הוא ${ils(avgSurplus, { sign: true })} בחודש, כך שעד דצמבר תצברו בערך ${ils(avgSurplus * months)}.`,
         bullets: [
-          `הפרישו ${ils(Math.ceil(amount / (months + 1) / 50) * 50)} מכל מחזור עד דצמבר`,
-          `צמצום אוכל בחוץ לרמה של החודש שעבר יפנה עוד כ־${ils(Math.max(0, by(current, "dining") - by(previous, "dining")))}`,
+          `הפרישו ${ils(Math.ceil(amount / (months + 1) / 50) * 50)} בכל חודש עד דצמבר`,
+          `אם תחזרו לרמת ההוצאה על אוכל בחוץ של החודש שעבר, יתפנו עוד כ־${ils(Math.max(0, by(current, "dining") - by(previous, "dining")))}`,
         ],
       };
     }
@@ -62,7 +65,7 @@ function useAnswer() {
         .sort((a, b) => b.d - a.d);
       return {
         role: "assistant",
-        text: deltas.length ? "בהשוואה לאותה נקודה במחזור הקודם, אלה הקטגוריות שעלו:" : "אתם מוציאים פחות או באותו קצב כמו במחזור הקודם בכל הקטגוריות. כל הכבוד!",
+        text: deltas.length ? "בהשוואה לאותה נקודה בחודש הקודם, בקטגוריות האלה הוצאתם יותר:" : "בכל הקטגוריות אתם מוציאים פחות מהחודש הקודם, או באותו קצב. כל הכבוד!",
         bullets: deltas.slice(0, 4).map((x) => `${x.name}: ${ils(x.d)} יותר`),
       };
     }
@@ -82,8 +85,8 @@ function useAnswer() {
       return {
         role: "assistant",
         text: txs.length
-          ? `במחזור הנוכחי הוצאתם ${ils(total)} ב־${key}, ב־${txs.length} תנועות.`
-          : `לא מצאתי הוצאות ב־${key} במחזור הנוכחי.`,
+          ? `החודש הוצאתם ${ils(total)} ${inName(key)}${txs.length === 1 ? ", בקנייה אחת." : `, ב־${txs.length} קניות.`}`
+          : `לא מצאתי החודש הוצאות ${inName(key)}.`,
       };
     }
     // Category: any significant word of its name ("דלק" → "דלק ותחבורה"), plus a few aliases.
@@ -97,13 +100,15 @@ function useAnswer() {
       const prev = by(previous, cat.id);
       return {
         role: "assistant",
-        text: `במחזור הנוכחי הוצאתם ${ils(now)} על ${cat.name}, ב־${txs.length} תנועות. במחזור הקודם, כולו, זה היה ${ils(prev)}.`,
+        text: txs.length === 0
+          ? `החודש עוד לא הוצאתם על ${cat.name}. בכל החודש הקודם הוצאתם על זה ${ils(prev)}.`
+          : `החודש הוצאתם ${ils(now)} על ${cat.name}${txs.length === 1 ? " (תנועה אחת)" : ` (${txs.length} תנועות)`}. בכל החודש הקודם הוצאתם על זה ${ils(prev)}.`,
         bullets: [...top.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([m, v]) => `${m}: ${ils(v)}`),
       };
     }
     return {
       role: "assistant",
-      text: `כרגע נשארו לכם ${ils(current.leftToSpend)} להוציא עד סוף המחזור, כ־${ils(current.dailyAllowance)} ליום. אפשר לשאול אותי על קטגוריה, מנויים, השוואה לחודש קודם או תכנון הוצאה גדולה.`,
+      text: `החודש צפוי להיסגר בתזרים של ${ils(current.projectedNet, { sign: true })}. אפשר לשאול אותי על קטגוריה או בית עסק, על מנויים, על השוואה לחודש הקודם או על תכנון הוצאה גדולה.`,
     };
   };
 }

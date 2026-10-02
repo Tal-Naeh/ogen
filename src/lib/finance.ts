@@ -1,4 +1,5 @@
 import type { Account, Budget, Category, CategoryKind, Recurring, Settings, Transaction } from "../data/types";
+import { ils } from "./format";
 import { addDays, cycleFor, dayInMonth, diffDays, fromISO, inCycle, type Cycle } from "./date";
 
 export interface FinanceState {
@@ -33,6 +34,7 @@ export interface CycleSummary {
   fixedPaid: number;
   fixedUpcoming: number;
   savings: number; // planned + done for the cycle
+  savingsDone: number;
   variableSpent: number;
   variableBudget: number;
   leftToSpend: number;
@@ -42,6 +44,14 @@ export interface CycleSummary {
   upcoming: UpcomingItem[];
   categories: CategorySpend[];
   cumulative: number[]; // variable spend, cumulative by day, up to today
+  // Monthly cash flow (תזרים): everything that came in minus everything that went out.
+  flowIn: number; // so far
+  flowOut: number; // so far
+  projectedIn: number; // whole month, incl. expected
+  projectedOut: number;
+  projectedNet: number;
+  netCumulative: number[]; // actual net flow, cumulative by day, up to today
+  netProjection: number[]; // expected cumulative net from today to month end (index 0 = today)
 }
 
 export const kindOf = (s: FinanceState) => {
@@ -118,13 +128,43 @@ export function summarize(s: FinanceState, today: Date, offset = 0): CycleSummar
   const savings = savingsDone + savingsUpcoming;
   const leftToSpend = incomeReceived + incomeUpcoming - fixedPaid - fixedUpcoming - savings - variableSpent;
 
-  // Project remaining variable spend from this cycle's pace, damped toward budget pace.
+  // Project remaining variable spend: early in the month a couple of days say little, so lean
+  // on the budget; trust the actual pace more as days accumulate (up to 65% after ~10 days).
   const pacePerDay = variableSpent / elapsed;
   const budgetPerDay = variableBudget / cycle.days;
-  const blended = isCurrent ? 0.65 * pacePerDay + 0.35 * budgetPerDay : 0;
+  const wPace = 0.65 * Math.min(1, elapsed / 10);
+  const blended = isCurrent ? wPace * pacePerDay + (1 - wPace) * budgetPerDay : 0;
   const remainingDays = isCurrent ? daysLeft - 1 : 0;
   const projectedVariable = variableSpent + blended * remainingDays;
   const projectedSurplus = leftToSpend - blended * remainingDays;
+
+  // Cash-flow path: actual per day so far, then expected — recurring items on their dates
+  // (salary jumps up, mortgage steps down) plus the variable pace per day.
+  const netDaily = new Array(elapsed).fill(0);
+  for (const t of txs) {
+    if (kind(t.categoryId) === "transfer") continue;
+    const i = diffDays(fromISO(t.date), cycle.start);
+    if (i >= 0 && i < elapsed) netDaily[i] += t.amount;
+  }
+  const netCumulative: number[] = [];
+  netDaily.reduce((acc, v) => (netCumulative.push(acc + v), acc + v), 0);
+  const netProjection: number[] = [];
+  if (isCurrent) {
+    let cum = netCumulative[dayIndex] ?? 0;
+    netProjection.push(cum);
+    for (let i = dayIndex + 1; i < cycle.days; i++) {
+      cum -= blended;
+      for (const u of upcoming) {
+        const ui = diffDays(u.date, cycle.start);
+        if (ui === i || (ui === dayIndex && i === dayIndex + 1)) cum += u.recurring.amount;
+      }
+      netProjection.push(cum);
+    }
+  }
+  const flowIn = incomeReceived;
+  const flowOut = fixedPaid + savingsDone + variableSpent;
+  const projectedIn = incomeReceived + incomeUpcoming;
+  const projectedOut = fixedPaid + fixedUpcoming + savings + projectedVariable;
 
   const byCat = new Map<string, { spent: number; count: number }>();
   for (const t of txs) {
@@ -153,6 +193,7 @@ export function summarize(s: FinanceState, today: Date, offset = 0): CycleSummar
     fixedPaid,
     fixedUpcoming,
     savings,
+    savingsDone,
     variableSpent,
     variableBudget,
     leftToSpend,
@@ -162,6 +203,13 @@ export function summarize(s: FinanceState, today: Date, offset = 0): CycleSummar
     upcoming,
     categories,
     cumulative,
+    flowIn,
+    flowOut,
+    projectedIn,
+    projectedOut,
+    projectedNet: projectedIn - projectedOut,
+    netCumulative,
+    netProjection,
   };
 }
 
@@ -170,6 +218,7 @@ export interface HistoryPoint {
   income: number;
   expenses: number; // fixed + variable
   savings: number;
+  net: number; // income − expenses − savings: the month's cash flow
 }
 
 export function history(s: FinanceState, today: Date, cycles = 6): HistoryPoint[] {
@@ -180,10 +229,66 @@ export function history(s: FinanceState, today: Date, cycles = 6): HistoryPoint[
       cycle: x.cycle,
       income: x.incomeReceived,
       expenses: x.fixedPaid + x.variableSpent,
-      savings: x.savings,
+      savings: x.savingsDone,
+      net: x.incomeReceived - x.fixedPaid - x.variableSpent - x.savingsDone,
     });
   }
   return out;
+}
+
+export interface BalancePoint {
+  month: Date; // first day of the month the point closes
+  balance: number; // bank balance at month end
+  projected: boolean;
+}
+
+export interface BalanceOutlook {
+  current: number; // bank balance now (negative = overdraft)
+  avgFlow: number; // average monthly net flow, last 3 full months
+  points: BalancePoint[]; // past month-ends, this month's expected end, then projection
+  clearsAt?: Date; // month the overdraft is expected to close
+  monthsToClear?: number;
+}
+
+/**
+ * The cash-flow mindset in one picture: past month-end balances reconstructed from each
+ * month's net flow, then projected forward at the recent average until the overdraft clears.
+ */
+export function balanceOutlook(s: FinanceState, cur: CycleSummary, hist: HistoryPoint[]): BalanceOutlook {
+  const current = s.accounts.filter((a) => a.type === "bank").reduce((a, b) => a + (b.balance ?? 0), 0);
+  const full = hist.slice(0, -1);
+  const recent = full.slice(-3);
+  const avgFlow = recent.length ? recent.reduce((a, h) => a + h.net, 0) / recent.length : 0;
+
+  // Walk back: balance at the end of last month = now − what flowed this month so far, etc.
+  const netSoFar = cur.flowIn - cur.flowOut;
+  const past: BalancePoint[] = [];
+  let b = current - netSoFar;
+  for (let i = full.length - 1; i >= 0; i--) {
+    past.unshift({ month: full[i].cycle.start, balance: b, projected: false });
+    b -= full[i].net;
+  }
+  const endOfThisMonth = current + (cur.projectedNet - netSoFar);
+  const points: BalancePoint[] = [...past, { month: cur.cycle.start, balance: endOfThisMonth, projected: true }];
+
+  let clearsAt: Date | undefined;
+  let monthsToClear: number | undefined;
+  let bal = endOfThisMonth;
+  const horizon = current < 0 && avgFlow > 0 ? Math.min(36, Math.ceil(-endOfThisMonth / avgFlow) + 2) : 6;
+  for (let k = 1; k <= horizon; k++) {
+    bal += avgFlow;
+    const month = dayInMonth(cur.cycle.start.getFullYear(), cur.cycle.start.getMonth() + k, 1);
+    points.push({ month, balance: bal, projected: true });
+    if (current < 0 && clearsAt === undefined && bal >= 0) {
+      clearsAt = month;
+      monthsToClear = k;
+    }
+  }
+  if (current < 0 && endOfThisMonth >= 0) {
+    clearsAt = cur.cycle.start;
+    monthsToClear = 0;
+  }
+  return { current, avgFlow, points, clearsAt, monthsToClear };
 }
 
 export type Tone = "good" | "warning" | "critical" | "info";
@@ -197,12 +302,42 @@ export interface Insight {
   action?: { label: string; to: string };
 }
 
-export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary): Insight[] {
+export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary, outlook?: BalanceOutlook): Insight[] {
   const out: Insight[] = [];
-  const ilsN = (n: number) => `₪${Math.round(n).toLocaleString("he-IL")}`;
+  const monthYear = new Intl.DateTimeFormat("he-IL", { month: "long", year: "numeric" });
 
+  if (outlook && outlook.current < 0 && outlook.avgFlow > 0 && outlook.clearsAt) {
+    out.push({
+      id: "overdraft-clears",
+      tone: "good",
+      icon: "sparkles",
+      title: outlook.monthsToClear === 0 ? "יוצאים מהמינוס כבר החודש" : `בעוד ${outlook.monthsToClear === 1 ? "חודש" : `${outlook.monthsToClear} חודשים`} תצאו מהמינוס`,
+      body: `התזרים שלכם חיובי, בממוצע ${ils(outlook.avgFlow, { sign: true })} בחודש. בקצב הזה המינוס ייסגר ב${monthYear.format(outlook.clearsAt)}, בלי צעדים דרסטיים.`,
+      action: { label: "למסלול היתרה", to: "/app" },
+    });
+  } else if (outlook && outlook.current < 0 && outlook.avgFlow <= 0) {
+    out.push({
+      id: "overdraft-growing",
+      tone: "warning",
+      icon: "trending",
+      title: "המינוס לא קטן כרגע",
+      body: `בחודשים האחרונים יצא יותר ממה שנכנס, בממוצע ${ils(-outlook.avgFlow)} בחודש. גם שיפור קטן בתזרים יתחיל לסגור את המינוס.`,
+      action: { label: "לתקציב", to: "/app/budgets" },
+    });
+  } else if (outlook && outlook.current >= 0 && outlook.avgFlow > 0) {
+    out.push({
+      id: "positive-growing",
+      tone: "good",
+      icon: "sparkles",
+      title: "החשבון בפלוס, והיתרה ממשיכה לגדול",
+      body: `בכל חודש נשארים לכם בממוצע ${ils(outlook.avgFlow)}. בקצב הזה, בעוד שנה יהיו לכם כ־${ils(outlook.avgFlow * 12)} נוספים.`,
+    });
+  }
+  const ilsN = (n: number) => ils(n);
+
+  // Pace says little in the first week (one big grocery run looks like a trend), so wait.
   const hot = cur.categories
-    .filter((c) => c.limit > 0 && c.spent > c.pace * 1.15 && c.spent > 150)
+    .filter((c) => cur.dayIndex >= 6 && c.limit > 0 && c.spent > c.pace * 1.15 && c.spent > 150)
     .sort((a, b) => b.spent / b.pace - a.spent / a.pace)[0];
   if (hot) {
     const projected = (hot.spent / (cur.dayIndex + 1)) * cur.cycle.days;
@@ -210,8 +345,8 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
       id: "hot-category",
       tone: projected > hot.limit ? "warning" : "info",
       icon: hot.category.icon,
-      title: `שווה להאט קצת ב${hot.category.name}`,
-      body: `הוצאתם ${ilsN(hot.spent)} עד היום. בקצב הזה תגיעו לכ־${ilsN(projected)} עד סוף המחזור, מול תקציב של ${ilsN(hot.limit)}.`,
+      title: `ההוצאות על ${hot.category.name} רצות מהר מהתכנון`,
+      body: `עד היום הוצאתם ${ilsN(hot.spent)}. בקצב הזה תגיעו לכ־${ilsN(projected)} בסוף החודש, והתקציב הוא ${ilsN(hot.limit)}.`,
       action: { label: "לפירוט ההוצאות", to: `/app/transactions?category=${hot.category.id}` },
     });
   }
@@ -224,8 +359,8 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
       id: `price-${r.id}`,
       tone: "warning",
       icon: "trending",
-      title: `${r.merchant.split(" · ")[0]} העלו את המחיר`,
-      body: `מ־${ilsN(Math.abs(r.previousAmount!))} ל־${ilsN(Math.abs(r.amount))}. זה ${ilsN(yearly)} נוספים בשנה, שווה לבדוק אם אפשר מסלול זול יותר.`,
+      title: `המחיר של ${r.merchant.split(" · ")[0]} עלה`,
+      body: `מ־${ils(Math.abs(r.previousAmount!), { cents: true })} ל־${ils(Math.abs(r.amount), { cents: true })}, כלומר ${ilsN(yearly)} יותר בשנה. אולי יש מסלול זול יותר.`,
       action: { label: "לכל החיובים הקבועים", to: "/app/recurring" },
     });
   }
@@ -237,11 +372,11 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
     tone: "info",
     icon: "repeat",
     title: `${subs.length} מנויים פעילים, ${ilsN(subsYear)} בשנה`,
-    body: "בדקנו את כל המנויים שלכם במקום אחד. סמנו את מה שלא בשימוש ונזכיר לכם לבטל לפני החיוב הבא.",
+    body: "ריכזנו את כל המנויים במקום אחד. סמנו מה לא בשימוש, ונזכיר לכם לבטל לפני החיוב הבא.",
     action: { label: "לסקירת המנויים", to: "/app/recurring" },
   });
 
-  if (cur.projectedSurplus > 0) {
+  if (cur.projectedSurplus > 0 && !(outlook && outlook.current < 0)) {
     const delta = cur.projectedSurplus - prev.leftToSpend;
     const elapsed = (cur.dayIndex + 1) / cur.cycle.days;
     const driver = cur.categories
@@ -251,11 +386,11 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
       id: "surplus",
       tone: "good",
       icon: "sparkles",
-      title: `צפוי עודף של ${ilsN(cur.projectedSurplus)} בסוף המחזור`,
+      title: `החודש צפוי להיסגר בתזרים חיובי של ${ilsN(cur.projectedSurplus)}`,
       body:
         delta >= 0
-          ? `${ilsN(delta)} יותר מהמחזור הקודם. רוצים להעביר חלק לחיסכון כבר עכשיו, לפני שזה "נעלם"?`
-          : `${ilsN(-delta)} פחות מהמחזור הקודם${driver && driver.d > 0 ? `, בעיקר בגלל ${driver.name}` : ""}. עדיין בפלוס.`,
+          ? `${ilsN(delta)} יותר מהחודש הקודם. רוצים להעביר חלק לחיסכון כבר עכשיו, לפני שהכסף ״נעלם״?`
+          : `${ilsN(-delta)} פחות מהחודש הקודם${driver && driver.d > 0 ? `, בעיקר בגלל ${driver.name}` : ""}. עדיין בפלוס.`,
       action: { label: "להגדרת יעד חיסכון", to: "/app/budgets" },
     });
   }
@@ -265,8 +400,8 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
       id: `sync-${a.id}`,
       tone: "critical",
       icon: "alert",
-      title: `${a.provider} צריך אימות קצר`,
-      body: "הכרטיס ביקש קוד חד־פעמי. זה לוקח כמה שניות, ואז נמשיך לעדכן את התנועות ממנו.",
+      title: `החיבור ל־${a.provider} דורש אימות`,
+      body: "חברת האשראי ביקשה קוד חד־פעמי. זה לוקח כמה שניות, ואחר כך התנועות יתעדכנו שוב.",
       action: { label: "לאימות", to: "/app/accounts" },
     });
   }

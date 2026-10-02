@@ -46,9 +46,10 @@ export function Money({ value, cents, sign, className, tone = "auto" }: { value:
 
 export type Severity = "ok" | "warning" | "critical";
 
-export function severityOf(spent: number, limit: number, pace: number): Severity {
+/** Over the limit is always flagged; "ahead of pace" only after the first week, when pace means something. */
+export function severityOf(spent: number, limit: number, pace: number, dayIndex = 99): Severity {
   if (limit > 0 && spent > limit) return "critical";
-  if (limit > 0 && (spent > limit * 0.9 || spent > pace * 1.15)) return "warning";
+  if (limit > 0 && (spent > limit * 0.9 || (dayIndex >= 6 && spent > pace * 1.15))) return "warning";
   return "ok";
 }
 

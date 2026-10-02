@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import * as mock from "../data/mock";
 import type { Budget, Settings } from "../data/types";
-import { history, insights, summarize, type FinanceState } from "./finance";
+import { balanceOutlook, history, insights, summarize, type FinanceState } from "./finance";
 
 // Local overrides on top of the synced data: the user's own edits.
 interface Overrides {
@@ -63,7 +63,8 @@ function useStoreValue() {
   const current = useMemo(() => summarize(state, today, 0), [state, today]);
   const previous = useMemo(() => summarize(state, today, -1), [state, today]);
   const hist = useMemo(() => history(state, today, 6), [state, today]);
-  const tips = useMemo(() => insights(state, current, previous), [state, current, previous]);
+  const outlook = useMemo(() => balanceOutlook(state, current, hist), [state, current, hist]);
+  const tips = useMemo(() => insights(state, current, previous, outlook), [state, current, previous, outlook]);
 
   // Recategorizing teaches a rule for the merchant, so its other transactions follow.
   // Earlier per-transaction overrides for that merchant are dropped so the rule wins.
@@ -106,7 +107,7 @@ function useStoreValue() {
   );
   const account = useCallback((id: string) => state.accounts.find((a) => a.id === id)!, [state.accounts]);
 
-  return { state, today, current, previous, history: hist, insights: tips, recategorize, verifyAccount, setBudget, reset, category, account };
+  return { state, today, current, previous, history: hist, outlook, insights: tips, recategorize, verifyAccount, setBudget, reset, category, account };
 }
 
 type Store = ReturnType<typeof useStoreValue>;

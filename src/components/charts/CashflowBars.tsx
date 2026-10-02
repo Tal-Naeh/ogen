@@ -3,8 +3,8 @@ import type { HistoryPoint } from "../../lib/finance";
 import { fmtMonth, ils, ilsCompact } from "../../lib/format";
 import { BoxKey, LegendItem, niceTicks, Tooltip, useWidth } from "./common";
 
-const H = 230;
-const PAD = { top: 22, bottom: 30, start: 48, end: 8 };
+const H = 250;
+const PAD = { top: 22, bottom: 50, start: 48, end: 8 };
 const BAR = 20;
 const GAP = 2; // surface gap between the paired bars
 
@@ -12,7 +12,7 @@ const GAP = 2; // surface gap between the paired bars
 export function CashflowBars({ data }: { data: HistoryPoint[] }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
-  const max = Math.max(...data.flatMap((d) => [d.income, d.expenses]));
+  const max = Math.max(...data.flatMap((d) => [d.income, d.expenses + d.savings]));
   const ticks = niceTicks(max * 1.05, 4);
   const top = ticks[ticks.length - 1];
   const innerW = Math.max(0, width - PAD.start - PAD.end);
@@ -34,12 +34,12 @@ export function CashflowBars({ data }: { data: HistoryPoint[] }) {
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1.5">
-        <LegendItem swatch={<BoxKey color="var(--series-1)" />}>הכנסות</LegendItem>
-        <LegendItem swatch={<BoxKey color="var(--series-2)" />}>הוצאות</LegendItem>
+        <LegendItem swatch={<BoxKey color="var(--series-1)" />}>נכנס</LegendItem>
+        <LegendItem swatch={<BoxKey color="var(--series-2)" />}>יצא</LegendItem>
       </div>
       <div ref={ref} className="relative w-full select-none" style={{ height: H }}>
         {width > 0 && (
-          <svg width={width} height={H} style={{ direction: "ltr" }} role="img" aria-label="הכנסות מול הוצאות בששת המחזורים האחרונים" onPointerLeave={() => setHover(null)}>
+          <svg width={width} height={H} style={{ direction: "ltr" }} role="img" aria-label="נכנס מול יצא בששת החודשים האחרונים" onPointerLeave={() => setHover(null)}>
             {ticks.map((t) => (
               <g key={t}>
                 <line x1={PAD.end} x2={width - PAD.start} y1={y(t)} y2={y(t)} stroke={t === 0 ? "var(--baseline)" : "var(--grid)"} />
@@ -58,14 +58,14 @@ export function CashflowBars({ data }: { data: HistoryPoint[] }) {
                 <g key={i} onPointerEnter={() => setHover(i)}>
                   <rect x={c - band / 2} y={PAD.top} width={band} height={innerH} fill={hover === i ? "var(--surface-2)" : "transparent"} rx={10} />
                   {bar(xInc, d.income, "var(--series-1)", partial ? 0.45 : 1)}
-                  {bar(xExp, d.expenses, "var(--series-2)", partial ? 0.45 : 1)}
-                  <text x={c} y={H - 8} textAnchor="middle" fontSize={11.5} fill={partial ? "var(--ink)" : "var(--muted)"} fontWeight={partial ? 600 : 400}>
+                  {bar(xExp, d.expenses + d.savings, "var(--series-2)", partial ? 0.45 : 1)}
+                  <text x={c} y={H - 28} textAnchor="middle" fontSize={11.5} fill={partial ? "var(--ink)" : "var(--muted)"} fontWeight={partial ? 600 : 400}>
                     {fmtMonth(d.cycle.start)}
                   </text>
-                  {i === last - 1 && (
-                    <text x={c} y={y(Math.max(d.income, d.expenses)) - 7} textAnchor="middle" fontSize={11.5} fontWeight={600} fill="var(--ink)" className="tnum">
-                      {d.income - d.expenses >= 0 ? "+" : "−"}
-                      {ilsCompact(Math.abs(d.income - d.expenses))}
+                  {!partial && (
+                    <text x={c} y={H - 9} textAnchor="middle" fontSize={12} fontWeight={600} fill={d.net >= 0 ? "var(--good-text)" : "var(--critical-text)"} className="tnum">
+                      {d.net >= 0 ? "+" : "−"}
+                      {ilsCompact(Math.abs(d.net))}
                     </text>
                   )}
                 </g>
@@ -77,11 +77,11 @@ export function CashflowBars({ data }: { data: HistoryPoint[] }) {
           <Tooltip x={cx(hover)} y={0} width={width}>
             <p className="mb-1.5 font-semibold text-ink">
               {fmtMonth(data[hover].cycle.start)}
-              {hover === last && <span className="font-normal text-muted"> · מחזור נוכחי</span>}
+              {hover === last && <span className="font-normal text-muted"> · עד היום</span>}
             </p>
             {[
-              ["הכנסות", data[hover].income, "var(--series-1)"],
-              ["הוצאות", data[hover].expenses, "var(--series-2)"],
+              ["נכנס", data[hover].income, "var(--series-1)"],
+              ["יצא", data[hover].expenses + data[hover].savings, "var(--series-2)"],
             ].map(([l, v, c]) => (
               <div key={l as string} className="flex items-center justify-between py-0.5">
                 <span className="inline-flex items-center gap-1.5 text-ink-2">
@@ -92,8 +92,8 @@ export function CashflowBars({ data }: { data: HistoryPoint[] }) {
               </div>
             ))}
             <div className="mt-1.5 flex justify-between border-t border-line pt-1.5">
-              <span className="text-ink-2">נשאר</span>
-              <span className="money tnum font-semibold text-ink">{ils(data[hover].income - data[hover].expenses, { sign: true })}</span>
+              <span className="text-ink-2">תזרים</span>
+              <span className="money tnum font-semibold text-ink">{ils(data[hover].net, { sign: true })}</span>
             </div>
           </Tooltip>
         )}
