@@ -9,11 +9,13 @@ import { Assistant } from "./pages/Assistant";
 import { Budgets } from "./pages/Budgets";
 import { Dashboard } from "./pages/Dashboard";
 import { Landing } from "./pages/Landing";
+import { Privacy } from "./pages/Privacy";
 import { Recurring } from "./pages/Recurring";
 import { Transactions } from "./pages/Transactions";
 
 const router = createBrowserRouter([
   { path: "/", element: <Landing /> },
+  { path: "/privacy", element: <Privacy /> },
   {
     path: "/app",
     element: <Shell />,

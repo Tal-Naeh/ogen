@@ -132,7 +132,11 @@ export function Landing() {
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-4 py-8 text-[13px] text-muted sm:px-6">
           <Logo />
-          <p>© {new Date().getFullYear()} עוגן · כלי לניהול תקציב אישי, לא ייעוץ פיננסי</p>
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>© {new Date().getFullYear()} עוגן · כלי לניהול תקציב אישי, לא ייעוץ פיננסי</span>
+            <Link to="/privacy" className="hover:text-ink hover:underline">מדיניות פרטיות</Link>
+            <Link to="/privacy#remove" className="hover:text-ink hover:underline">הסרה מרשימת ההמתנה</Link>
+          </p>
         </div>
       </footer>
     </div>
@@ -408,7 +412,10 @@ function WaitlistForm({ plan, source, onDark }: { plan: Plan; source: string; on
         </button>
       </div>
       <p className={clsx("mt-2.5 px-4 text-start text-[12px]", onDark ? "text-white/60" : "text-muted")}>
-        נשתמש בכתובת רק כדי לעדכן אתכם על ההשקה. לא נעביר אותה לאף אחד, ותוכלו להסיר אותה בכל רגע.
+        נשתמש בכתובת רק כדי לעדכן אתכם על ההשקה. לא נעביר אותה לאף אחד, ותוכלו להסיר אותה בכל רגע.{" "}
+        <Link to="/privacy" className={clsx("underline underline-offset-2", onDark ? "hover:text-white" : "hover:text-ink")}>
+          מדיניות הפרטיות
+        </Link>
       </p>
       {invalid && <p className={clsx("mt-2 px-4 text-start text-[13px]", onDark ? "text-[#ffb4b4]" : "text-critical-text")}>כתובת המייל לא נראית תקינה</p>}
       {state === "error" && <p className={clsx("mt-2 px-4 text-start text-[13px]", onDark ? "text-[#ffb4b4]" : "text-critical-text")}>משהו השתבש. נסו שוב בעוד רגע.</p>}

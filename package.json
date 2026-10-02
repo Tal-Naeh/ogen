@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "waitlist": "vercel env pull .env.local --yes >/dev/null && node --env-file=.env.local scripts/export-waitlist.mjs"
+    "waitlist": "umask 077 && vercel env pull .env.local --yes >/dev/null && node --env-file=.env.local scripts/export-waitlist.mjs; status=$?; rm -f .env.local; exit $status"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
