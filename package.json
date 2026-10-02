@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "waitlist": "vercel env pull .env.local --yes >/dev/null && node --env-file=.env.local scripts/export-waitlist.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

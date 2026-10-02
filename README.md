@@ -18,9 +18,25 @@ pnpm build      # type-check + production bundle in dist/
 
 ## Waitlist
 
-Set `VITE_WAITLIST_ENDPOINT` (e.g. in `.env.local`) to any URL that accepts a JSON POST
-(`{ email, plan, source, ts }`): Formspree, a Google Apps Script web app, or your own API.
-Without it, signups are saved only in the visitor's browser, so nothing is collected.
+Production signups go to `api/waitlist.ts` (Vercel Function, fra1), which stores one **private**
+JSON file per email in the Blob store `ogen-waitlist` (fra1). The file name is a hash of the
+email, so signing up again updates the chosen plan instead of creating a duplicate. A hidden
+honeypot field drops bots.
+
+```sh
+pnpm waitlist   # → waitlist.csv + counts by plan and by CTA
+```
+
+In `pnpm dev` there is no `/api`, so the form keeps signups in the browser only.
+`VITE_WAITLIST_ENDPOINT` overrides the endpoint if you ever move off Vercel.
+
+## Deploy
+
+Vercel: https://your-app.vercel.app
+
+```sh
+vercel deploy --prod
+```
 
 ## Structure
 
