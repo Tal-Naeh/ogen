@@ -7,8 +7,8 @@ import { useTheme } from "../lib/store";
 import { isValidEmail } from "../lib/waitlist";
 
 // Who answers for this data. Filled in by the owner before the page is published.
-export const DATA_OWNER = "";
-export const PRIVACY_CONTACT = "";
+export const DATA_OWNER = ""; // set before publishing the page
+export const PRIVACY_CONTACT = ""; // set before publishing the page
 const UPDATED = "2 באוקטובר 2026";
 
 export function Privacy() {

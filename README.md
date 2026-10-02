@@ -32,11 +32,13 @@ In `pnpm dev` there is no `/api`, so the form keeps signups in the browser only.
 
 ## Deploy
 
-Vercel: https://your-app.vercel.app
+Deployable to Vercel as is (`vercel.json`: SPA rewrites, functions in fra1). Create a private Blob store, connect it to the project, then:
 
 ```sh
 vercel deploy --prod
 ```
+
+Fill in `DATA_OWNER` and `PRIVACY_CONTACT` in `src/pages/Privacy.tsx` before publishing.
 
 ## Structure
 
