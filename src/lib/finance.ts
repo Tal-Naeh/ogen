@@ -203,9 +203,9 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
       id: "hot-category",
       tone: projected > hot.limit ? "warning" : "info",
       icon: hot.category.icon,
-      title: `${hot.category.name} רץ מהר מהתכנון`,
+      title: `שווה להאט קצת ב${hot.category.name}`,
       body: `הוצאתם ${ilsN(hot.spent)} עד היום. בקצב הזה תגיעו לכ־${ilsN(projected)} עד סוף המחזור, מול תקציב של ${ilsN(hot.limit)}.`,
-      action: { label: "לפירוט ההוצאות", to: `/transactions?category=${hot.category.id}` },
+      action: { label: "לפירוט ההוצאות", to: `/app/transactions?category=${hot.category.id}` },
     });
   }
 
@@ -219,7 +219,7 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
       icon: "trending",
       title: `${r.merchant.split(" · ")[0]} העלו את המחיר`,
       body: `מ־${ilsN(Math.abs(r.previousAmount!))} ל־${ilsN(Math.abs(r.amount))}. זה ${ilsN(yearly)} נוספים בשנה, שווה לבדוק אם אפשר מסלול זול יותר.`,
-      action: { label: "לכל החיובים הקבועים", to: "/recurring" },
+      action: { label: "לכל החיובים הקבועים", to: "/app/recurring" },
     });
   }
 
@@ -231,7 +231,7 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
     icon: "repeat",
     title: `${subs.length} מנויים פעילים, ${ilsN(subsYear)} בשנה`,
     body: "בדקנו את כל המנויים שלכם במקום אחד. סמנו את מה שלא בשימוש ונזכיר לכם לבטל לפני החיוב הבא.",
-    action: { label: "לסקירת המנויים", to: "/recurring" },
+    action: { label: "לסקירת המנויים", to: "/app/recurring" },
   });
 
   if (cur.projectedSurplus > 0) {
@@ -245,7 +245,7 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
         delta >= 0
           ? `${ilsN(delta)} יותר מהמחזור הקודם. רוצים להעביר חלק לחיסכון כבר עכשיו, לפני שזה "נעלם"?`
           : `${ilsN(-delta)} פחות מהמחזור הקודם, בעיקר בגלל אוכל בחוץ. עדיין בפלוס.`,
-      action: { label: "להגדרת יעד חיסכון", to: "/budgets" },
+      action: { label: "להגדרת יעד חיסכון", to: "/app/budgets" },
     });
   }
 
@@ -254,13 +254,13 @@ export function insights(s: FinanceState, cur: CycleSummary, prev: CycleSummary)
       id: `sync-${a.id}`,
       tone: "critical",
       icon: "alert",
-      title: `החיבור ל־${a.provider} דורש אימות`,
-      body: "הכרטיס ביקש קוד חד־פעמי. עד שנאמת, תנועות חדשות ממנו לא יופיעו והתחזית פחות מדויקת.",
-      action: { label: "לאימות החיבור", to: "/accounts" },
+      title: `${a.provider} צריך אימות קצר`,
+      body: "הכרטיס ביקש קוד חד־פעמי. זה לוקח כמה שניות, ואז נמשיך לעדכן את התנועות ממנו.",
+      action: { label: "לאימות", to: "/app/accounts" },
     });
   }
 
-  const order: Record<Tone, number> = { critical: 0, warning: 1, good: 2, info: 3 };
+  const order: Record<Tone, number> = { good: 0, critical: 1, warning: 2, info: 3 };
   return out.sort((a, b) => order[a.tone] - order[b.tone]);
 }
 

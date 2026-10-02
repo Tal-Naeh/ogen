@@ -104,24 +104,21 @@ export function useStore(): Store {
   return v;
 }
 
-// Theme: "system" removes the attribute so the OS preference applies.
+// Theme: light by default. "system" follows the OS via CSS on [data-theme="system"].
 export type ThemePref = "light" | "dark" | "system";
 
 export function useTheme(): [ThemePref, (t: ThemePref) => void] {
   const [pref, setPref] = useState<ThemePref>(() => {
     try {
-      return (localStorage.getItem("shefa-theme") as ThemePref) || "system";
+      return (localStorage.getItem("shefa-theme") as ThemePref) || "light";
     } catch {
-      return "system";
+      return "light";
     }
   });
   useEffect(() => {
-    const root = document.documentElement;
-    if (pref === "system") delete root.dataset.theme;
-    else root.dataset.theme = pref;
+    document.documentElement.dataset.theme = pref;
     try {
-      if (pref === "system") localStorage.removeItem("shefa-theme");
-      else localStorage.setItem("shefa-theme", pref);
+      localStorage.setItem("shefa-theme", pref);
     } catch {
       /* storage unavailable */
     }

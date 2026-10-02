@@ -11,6 +11,17 @@ pnpm dev        # http://localhost:5173
 pnpm build      # type-check + production bundle in dist/
 ```
 
+## Routes
+
+- `/` is the landing page with the waitlist and pricing test (monthly ₪9.90 / annual ₪99).
+- `/app` is the product demo running on mock data.
+
+## Waitlist
+
+Set `VITE_WAITLIST_ENDPOINT` (e.g. in `.env.local`) to any URL that accepts a JSON POST
+(`{ email, plan, source, ts }`): Formspree, a Google Apps Script web app, or your own API.
+Without it, signups are saved only in the visitor's browser, so nothing is collected.
+
 ## Structure
 
 - `src/data/types.ts` is the domain model (accounts, transactions, recurring, budgets).

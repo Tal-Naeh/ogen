@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ArrowLeft, ChevronLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, CircleCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CashflowBars } from "../components/charts/CashflowBars";
 import { ForecastChart } from "../components/charts/ForecastChart";
@@ -13,12 +13,20 @@ import { useStore } from "../lib/store";
 export function Dashboard() {
   const { current: c, previous, history, insights } = useStore();
 
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? "בוקר טוב" : hour < 17 ? "צהריים טובים" : hour < 21 ? "ערב טוב" : "לילה טוב";
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+      <div className="rise lg:col-span-12">
+        <h1 className="text-[32px] font-semibold tracking-[-0.025em] text-ink sm:text-[40px]">{greet} 👋</h1>
+        <p className="mt-1 text-[16px] text-ink-2">
+          {c.projectedSurplus >= 0 ? "החודש מתקדם יפה." : "החודש קצת צפוף, אבל יש זמן לתקן."} נשארו {c.daysLeft} ימים עד המשכורת.
+        </p>
+      </div>
       <Hero />
 
       <Card className="rise lg:col-span-5" as="div">
-        <CardHeader title="מה כדאי לדעת היום" subtitle={`${insights.length} תובנות חדשות`} />
+        <CardHeader title="בשבילכם היום" subtitle="כמה דברים ששווה להכיר" />
         <ul className="mt-3 space-y-1 px-3 pb-3">
           {insights.slice(0, 4).map((i) => (
             <InsightRow key={i.id} insight={i} />
@@ -52,7 +60,7 @@ export function Dashboard() {
           title="צפוי עד סוף המחזור"
           subtitle={`${c.upcoming.length} חיובים והכנסות`}
           action={
-            <Link to="/recurring" className="inline-flex items-center gap-0.5 text-[13px] font-medium text-brand hover:underline">
+            <Link to="/app/recurring" className="inline-flex items-center gap-0.5 text-[13px] font-medium text-brand hover:underline">
               הכל <ChevronLeft size={15} />
             </Link>
           }
@@ -70,7 +78,7 @@ export function Dashboard() {
           title="תקציב לפי קטגוריה"
           subtitle="הקו האנכי מסמן איפה ״אמורים״ להיות היום"
           action={
-            <Link to="/budgets" className="inline-flex items-center gap-0.5 text-[13px] font-medium text-brand hover:underline">
+            <Link to="/app/budgets" className="inline-flex items-center gap-0.5 text-[13px] font-medium text-brand hover:underline">
               עריכה <ChevronLeft size={15} />
             </Link>
           }
@@ -119,75 +127,109 @@ export function Dashboard() {
   );
 }
 
-function Hero() {
+export function Hero() {
   const { current: c } = useStore();
-  const progress = (c.dayIndex + 1) / c.cycle.days;
   const income = c.incomeReceived + c.incomeUpcoming;
   const fixed = c.fixedPaid + c.fixedUpcoming;
   const left = Math.max(0, c.leftToSpend);
   const segs = [
-    { label: "קבועות", value: fixed, o: 0.3 },
-    { label: "חיסכון", value: c.savings, o: 0.5 },
-    { label: "משתנות עד כה", value: c.variableSpent, o: 0.72 },
-    { label: "נשאר להוציא", value: left, o: 1, accent: true },
+    { label: "קבועות", value: fixed, color: "#5e5ce6" },
+    { label: "חיסכון", value: c.savings, color: "#30d158" },
+    { label: "הוצאות משתנות", value: c.variableSpent, color: "#ff9f0a" },
+    { label: "נשאר להוציא", value: left, color: "#0a84ff" },
   ];
-  const positive = c.leftToSpend >= 0;
+  const positive = c.projectedSurplus >= 0;
+  const budgetLeftPct = c.variableBudget > 0 ? Math.max(0, 1 - c.variableSpent / c.variableBudget) : 0;
+  const next = new Date(c.cycle.end.getTime() + 86_400_000);
 
   return (
-    <section className="hero-card rise relative overflow-hidden rounded-3xl p-6 text-white shadow-card sm:p-8 lg:col-span-7">
+    <section className="glow-card rise relative overflow-hidden rounded-[28px] border border-line p-6 shadow-card sm:p-8 lg:col-span-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[14px] text-white/75">
-          מחזור {fmtDateShort(c.cycle.start)} – {fmtDateShort(c.cycle.end)}
+        <p className="text-[14px] font-medium text-muted">
+          {fmtDateShort(c.cycle.start)} – {fmtDateShort(c.cycle.end)}
         </p>
-        <span className="rounded-full bg-white/10 px-3 py-1 text-[12.5px] text-white/85 backdrop-blur">
-          יום {c.dayIndex + 1} מתוך {c.cycle.days}
+        <span className="rounded-full bg-surface-2 px-3 py-1 text-[12.5px] font-medium text-ink-2">
+          עוד {c.daysLeft} ימים למשכורת
         </span>
       </div>
 
-      <p className="mt-6 text-[15px] font-medium text-white/80">{positive ? "נשאר לכם להוציא החודש" : "המחזור צפוי להסתיים במינוס"}</p>
-      <p className="mt-1 text-[52px] font-bold leading-none tracking-tight sm:text-[64px]">
-        <span className="money">{ils(c.leftToSpend)}</span>
-      </p>
-      <p className="mt-3 text-[15px] text-white/80">
-        כלומר כ־<span className="money font-semibold text-white">{ils(Math.max(0, c.dailyAllowance))}</span> ליום, ל־{c.daysLeft} הימים שנותרו
-      </p>
+      <div className="mt-6 flex items-center justify-between gap-6">
+        <div className="min-w-0">
+          <p className="text-[15px] font-medium text-ink-2">נשאר לכם להוציא</p>
+          <p className="mt-1 text-[56px] font-semibold leading-none tracking-[-0.03em] text-ink sm:text-[68px]">
+            <span className="money">{ils(c.leftToSpend)}</span>
+          </p>
+          <p className="mt-3 text-[16px] text-ink-2">
+            בערך <span className="money font-semibold text-ink">{ils(Math.max(0, c.dailyAllowance))}</span> ליום
+          </p>
+          {positive && (
+            <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-good-soft px-3 py-1.5 text-[13.5px] font-medium text-good-text">
+              <CircleCheck size={15} strokeWidth={2.4} /> אתם בדרך לסיים את החודש בפלוס
+            </p>
+          )}
+        </div>
+        <Ring pct={budgetLeftPct} />
+      </div>
 
       {/* Where this cycle's income goes */}
       <div className="mt-8">
-        <div className="flex h-3 w-full gap-[2px] overflow-hidden rounded-full" role="img" aria-label="חלוקת ההכנסה במחזור">
+        <div className="flex h-2.5 w-full gap-[2px] overflow-hidden rounded-full" role="img" aria-label="חלוקת ההכנסה במחזור">
           {segs.map((s) => (
-            <div key={s.label} className="h-full first:rounded-s-full last:rounded-e-full" style={{ flexGrow: Math.max(s.value, 0.0001), background: s.accent ? "#5ee0b8" : `rgba(255,255,255,${s.o})` }} />
+            <div key={s.label} className="h-full first:rounded-s-full last:rounded-e-full" style={{ flexGrow: Math.max(s.value, 0.0001), background: s.color }} />
           ))}
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-5">
           <div>
-            <dt className="text-[12px] text-white/65">הכנסות צפויות</dt>
-            <dd className="money tnum text-[15px] font-semibold">{ils(income)}</dd>
+            <dt className="text-[12.5px] text-muted">הכנסות החודש</dt>
+            <dd className="money tnum text-[15px] font-semibold text-ink">{ils(income)}</dd>
           </div>
           {segs.map((s) => (
             <div key={s.label}>
-              <dt className="flex items-center gap-1.5 text-[12px] text-white/65">
-                <span className="h-2 w-2 rounded-full" style={{ background: s.accent ? "#5ee0b8" : `rgba(255,255,255,${s.o})` }} />
+              <dt className="flex items-center gap-1.5 text-[12.5px] text-muted">
+                <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
                 {s.label}
               </dt>
-              <dd className="money tnum text-[15px] font-semibold">{ils(s.value)}</dd>
+              <dd className="money tnum text-[15px] font-semibold text-ink">{ils(s.value)}</dd>
             </div>
           ))}
         </dl>
       </div>
 
-      <div className="mt-6 h-1 w-full overflow-hidden rounded-full bg-white/10" aria-hidden>
-        <div className="h-full rounded-full bg-white/50" style={{ width: `${progress * 100}%` }} />
-      </div>
-      <p className="mt-2 text-[12px] text-white/60">
-        המחזור הבא מתחיל ב{fmtWeekday(new Date(c.cycle.end.getTime() + 86_400_000))}, {fmtDate(new Date(c.cycle.end.getTime() + 86_400_000))} · כשהמשכורת נכנסת
+      <p className="mt-6 text-[12.5px] text-muted">
+        המחזור הבא מתחיל ב{fmtWeekday(next)}, {fmtDate(next)}, כשהמשכורת נכנסת
       </p>
     </section>
   );
 }
 
+/** Activity-ring style gauge: share of the variable budget still available. */
+function Ring({ pct }: { pct: number }) {
+  const r = 46;
+  const C = 2 * Math.PI * r;
+  return (
+    <div className="relative hidden shrink-0 sm:block" role="img" aria-label={`נשארו ${Math.round(pct * 100)}% מהתקציב המשתנה`}>
+      <svg width="124" height="124" viewBox="0 0 124 124" className="-rotate-90">
+        <defs>
+          <linearGradient id="ring-g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#30d158" />
+            <stop offset="1" stopColor="#0a84ff" />
+          </linearGradient>
+        </defs>
+        <circle cx="62" cy="62" r={r} fill="none" stroke="var(--surface-3)" strokeWidth="14" />
+        <circle cx="62" cy="62" r={r} fill="none" stroke="url(#ring-g)" strokeWidth="14" strokeLinecap="round" strokeDasharray={`${C * pct} ${C}`} className="transition-[stroke-dasharray] duration-1000 ease-out" />
+      </svg>
+      <div className="absolute inset-0 grid place-items-center text-center">
+        <span>
+          <span className="block text-[22px] font-semibold leading-none text-ink">{Math.round(pct * 100)}%</span>
+          <span className="mt-1 block text-[11px] text-muted">נשאר בתקציב</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 const toneStyle = {
-  critical: "bg-critical-soft text-critical-text",
+  critical: "bg-brand-soft text-brand",
   warning: "bg-warning-soft text-warning-text",
   good: "bg-good-soft text-good-text",
   info: "bg-surface-2 text-ink-2",
@@ -196,7 +238,7 @@ const toneStyle = {
 function InsightRow({ insight }: { insight: Insight }) {
   return (
     <li>
-      <Link to={insight.action?.to ?? "/"} className="group flex gap-3.5 rounded-2xl p-3 transition hover:bg-surface-2">
+      <Link to={insight.action?.to ?? "/app"} className="group flex gap-3.5 rounded-2xl p-3 transition hover:bg-surface-2">
         <span className={clsx("grid h-10 w-10 shrink-0 place-items-center rounded-xl", toneStyle[insight.tone])}>
           <Icon name={insight.icon} size={19} />
         </span>
@@ -236,7 +278,7 @@ function RecentTransactions() {
         title="תנועות אחרונות"
         subtitle="מכל החשבונות והכרטיסים, מקוטלגות אוטומטית"
         action={
-          <Link to="/transactions" className="inline-flex items-center gap-0.5 text-[13px] font-medium text-brand hover:underline">
+          <Link to="/app/transactions" className="inline-flex items-center gap-0.5 text-[13px] font-medium text-brand hover:underline">
             לכל התנועות <ChevronLeft size={15} />
           </Link>
         }

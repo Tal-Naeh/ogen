@@ -6,12 +6,12 @@ import { useStore, useTheme, type ThemePref } from "../lib/store";
 import { relativeTime } from "../lib/format";
 
 const nav = [
-  { to: "/", label: "סקירה", Icon: LayoutDashboard, end: true },
-  { to: "/transactions", label: "תנועות", Icon: ArrowLeftRight },
-  { to: "/budgets", label: "תקציב", Icon: Target },
-  { to: "/recurring", label: "קבועים", Icon: CalendarClock },
-  { to: "/accounts", label: "חשבונות", Icon: Wallet },
-  { to: "/assistant", label: "העוזר", Icon: Sparkles },
+  { to: "/app", label: "סקירה", Icon: LayoutDashboard, end: true },
+  { to: "/app/transactions", label: "תנועות", Icon: ArrowLeftRight },
+  { to: "/app/budgets", label: "תקציב", Icon: Target },
+  { to: "/app/recurring", label: "קבועים", Icon: CalendarClock },
+  { to: "/app/accounts", label: "חשבונות", Icon: Wallet },
+  { to: "/app/assistant", label: "העוזר", Icon: Sparkles },
 ];
 
 export function Logo({ className }: { className?: string }) {
@@ -21,15 +21,15 @@ export function Logo({ className }: { className?: string }) {
       <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden>
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#2bb894" />
-            <stop offset="1" stopColor="#0e7c66" />
+            <stop offset="0" stopColor="#0a84ff" />
+            <stop offset="1" stopColor="#5e5ce6" />
           </linearGradient>
         </defs>
         <rect width="32" height="32" rx="9" fill={`url(#${gid})`} />
         <path d="M8 20.5c3.2 0 4.4-9 8-9s4.8 9 8 9" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" />
         <circle cx="16" cy="11.5" r="2.2" fill="#fff" />
       </svg>
-      <span className="text-[20px] font-extrabold tracking-tight text-ink">שפע</span>
+      <span className="text-[20px] font-bold tracking-tight text-ink">שפע</span>
     </span>
   );
 }
@@ -71,7 +71,7 @@ export function Shell() {
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
       {/* Sidebar (sits on the right in RTL) */}
-      <aside className="sticky top-0 hidden h-dvh flex-col border-e border-line bg-surface/60 px-4 py-6 backdrop-blur lg:flex">
+      <aside className="sticky top-0 hidden h-dvh flex-col border-e border-line bg-surface/70 px-4 py-6 backdrop-blur-xl lg:flex">
         <Logo className="px-2" />
         <nav className="mt-8 flex flex-col gap-1" aria-label="ניווט ראשי">
           {nav.map(({ to, label, Icon, end }) => (
@@ -82,7 +82,7 @@ export function Shell() {
               className={({ isActive }) =>
                 clsx(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14.5px] font-medium transition",
-                  isActive ? "bg-brand-soft text-brand" : "text-ink-2 hover:bg-surface-2 hover:text-ink",
+                  isActive ? "bg-brand text-white shadow-card" : "text-ink-2 hover:bg-surface-2 hover:text-ink",
                 )
               }
             >
@@ -99,7 +99,7 @@ export function Shell() {
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-30 border-b border-line bg-page/80 backdrop-blur-xl">
+        <header className="frost sticky top-0 z-30 border-b border-line">
           <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <Logo className="lg:hidden" />
             <p className="hidden text-[14px] text-ink-2 lg:block">
@@ -109,7 +109,7 @@ export function Shell() {
               <ThemeToggle />
               <button className="relative grid h-9 w-9 place-items-center rounded-full text-ink-2 hover:bg-surface-2 hover:text-ink" aria-label="התראות">
                 <Bell size={18} />
-                <span className="absolute end-2 top-2 h-2 w-2 rounded-full bg-critical ring-2 ring-page" />
+                <span className="absolute end-2 top-2 h-2 w-2 rounded-full bg-brand ring-2 ring-page" />
               </button>
               <span className="grid h-9 w-9 place-items-center rounded-full bg-surface-3 text-[13px] font-bold text-ink-2" aria-hidden>
                 ד״ל
