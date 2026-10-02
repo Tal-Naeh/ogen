@@ -41,7 +41,7 @@ export function Privacy() {
 
         <div className="mt-10 space-y-8">
           <Section title="מי אחראי על המידע">
-            בעל המאגר והאחראי על המידע: {DATA_OWNER || "[להשלמה]"}. לכל שאלה או בקשה בנושא פרטיות אפשר לפנות אל{" "}
+            בעל המאגר והאחראי על המידע: <bdi>{DATA_OWNER || "[להשלמה]"}</bdi>. לכל שאלה או בקשה בנושא פרטיות אפשר לפנות אל{" "}
             {PRIVACY_CONTACT ? (
               <a href={`mailto:${PRIVACY_CONTACT}`} className="font-medium text-brand hover:underline" dir="ltr">
                 {PRIVACY_CONTACT}
