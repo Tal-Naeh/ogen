@@ -1,7 +1,6 @@
 // Vercel Function: POST /api/waitlist → one private JSON blob per email.
 // The file name is a hash of the email, so re-signing up updates the plan instead of duplicating.
 import { put } from "@vercel/blob";
-import { createHash } from "node:crypto";
 
 const PLANS = new Set(["monthly", "annual", "undecided"]);
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -27,7 +26,9 @@ export async function POST(request: Request): Promise<Response> {
   const source = typeof data.source === "string" ? data.source.slice(0, 32) : "unknown";
   if (email.length > 254 || !EMAIL.test(email)) return json(400, { error: "invalid email" });
 
-  const id = createHash("sha256").update(email).digest("hex").slice(0, 32);
+  // Web Crypto (global in the runtime): no Node-only APIs, so no @types/node needed at build time.
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(email));
+  const id = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
   await put(`waitlist/${id}.json`, JSON.stringify({ email, plan, source, ts: new Date().toISOString() }), {
     access: "private",
     contentType: "application/json",
